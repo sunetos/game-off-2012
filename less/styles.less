@@ -19,7 +19,30 @@ body {
   }
 }
 
+.from(bg-vert-top) { background-position: 0 0; }
+.to(bg-vert-bottom) { background-position: 0 100%; }
+.keyframes(scroll-bg-vert, bg-vert-top, bg-vert-bottom);
+
 .ether {
   .stretch;
-  background: hsl(356, 0.823, 0.376);
+  //background-color: hsl(356, 0.823, 0.376);
+  background-color: hsl(356, 0.823, 0.25);
+
+  &:before {
+    .stretch;
+    background: url(/img/blood-cells-grey-alpha-png8.png) repeat 0 0 scroll;
+    content: '';
+    .opacity(0.5);
+  }
+
+  &.animated:before {
+    .animation(~'scroll-bg-vert 30s linear 0s infinite');
+  }
+}
+
+
+.cell {
+  .circle(20px);
+  border: 2px solid #999;
+  background-color: #ccc;
 }

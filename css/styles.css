@@ -715,6 +715,48 @@ body {
 .styles section.big {
   min-height: 100px;
 }
+@-moz-keyframes scroll-bg-vert {
+from {
+  background-position: 0 0;
+}
+to {
+  background-position: 0 100%;
+}
+}
+@-webkit-keyframes scroll-bg-vert {
+from {
+  background-position: 0 0;
+}
+to {
+  background-position: 0 100%;
+}
+}
+@-o-keyframes scroll-bg-vert {
+from {
+  background-position: 0 0;
+}
+to {
+  background-position: 0 100%;
+}
+}
+@-ms-keyframes scroll-bg-vert {
+from {
+  background-position: 0 0;
+}
+to {
+  background-position: 0 100%;
+}
+}
+@keyframes scroll-bg-vert {
+from {
+  background-position: 0 0;
+}
+to {
+  background-position: 0 100%;
+}
+} {
+  zoom: 1;
+}
 .ether {
   position: absolute;
   top: 0;
@@ -723,5 +765,39 @@ body {
   left: 0;
   width: auto;
   height: auto;
-  background: #af111b;
+  background-color: #740b12;
+}
+.ether:before {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  width: auto;
+  height: auto;
+  background: url(/img/blood-cells-grey-alpha-png8.png) repeat 0 0 scroll;
+  content: '';
+  -khtml-opacity: 0.5;
+  -webkit-opacity: 0.5;
+  -moz-opacity: 0.5;
+  opacity: 0.5;
+}
+.ether.animated:before {
+  -webkit-animation: scroll-bg-vert 30s linear 0s infinite;
+  -moz-animation: scroll-bg-vert 30s linear 0s infinite;
+  -o-animation: scroll-bg-vert 30s linear 0s infinite;
+  -ms-animation: scroll-bg-vert 30s linear 0s infinite;
+  animation: scroll-bg-vert 30s linear 0s infinite;
+}
+.cell {
+  width: 20px;
+  height: 20px;
+  -webkit-border-radius: 20px;
+  -moz-border-radius: 20px;
+  border-radius: 20px;
+  -moz-background-clip: padding;
+  -webkit-background-clip: padding-box;
+  background-clip: padding-box;
+  border: 2px solid #999;
+  background-color: #ccc;
 }

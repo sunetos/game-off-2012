@@ -1,7 +1,37 @@
-.clearfix() {
-  *zoom: 1;
-  &:before, &:after{ content: " "; display: table; }
-  &:after{ clear: both; }
+//@import 'mixins/all.less';
+@import 'lesshat.less';
+
+@using-modernizr: true;
+@base-font-size: 14;
+@using-ieclasses: true;
+@disable-filters: true;
+
+// Taken from http://stackoverflow.com/a/11589227/111412
+// Example: 
+//  .from(bg-vert-top) { background-position: 0 0; }
+//  .to(bg-vert-bottom) { background-position: 0 100%; }
+//  .keyframes('.animated', scroll-bg-vert, bg-vert-top, bg-vert-bottom);
+.keyframes(@name, @from, @to) {
+    @newline: `"\n"`; // Newline
+    .setVendor(@pre, @post, @vendor) {
+        (~"@{pre}@@{vendor}keyframes @{name} {@{newline}from") {
+            .from(@from);
+        }
+        to  {
+            .to(@to);
+        }
+       .Local(){}
+       .Local() when (@post=1) {
+           // Messing around with hacks to close the block.  
+           (~"}@{newline}") { zoom: 1; }
+       }
+       .Local;
+    }
+    .setVendor(""            , 0,    "-moz-");
+    .setVendor(~"}@{newline}", 0, "-webkit-");
+    .setVendor(~"}@{newline}", 0,      "-o-");
+    .setVendor(~"}@{newline}", 0,     "-ms-");
+    .setVendor(~"}@{newline}", 1,         "");
 }
 
 .stretch {
@@ -12,4 +42,10 @@
   left: 0;
   width: auto;
   height: auto;
+}
+
+.circle(@radius) {
+  width: @radius;
+  height: @radius;
+  .rounded(@radius);
 }
