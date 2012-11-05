@@ -1,0 +1,25 @@
+@import 'normalize.less';
+@import 'html5bp.less';
+@import 'elements.less';
+@import 'mixins.less';
+
+body {
+  background: #000;
+}
+
+.styles {
+  section {
+    position: relative;
+    min-width: 640px;
+    min-height: 10px;
+
+    &.big {
+      min-height: 100px;
+    }
+  }
+}
+
+.ether {
+  .stretch;
+  background: hsl(356, 0.823, 0.376);
+}
