@@ -47,10 +47,10 @@ a, a:focus, a:hover {
 .to(bg-vert-bottom) { background-position: 0 100%; }
 .keyframes(scroll-bg-vert, bg-vert-top, bg-vert-bottom);
 
+@blood: hsl(356, 0.823, 0.376);
 .ether {
   .stretch-rel;
-  //background-color: hsl(356, 0.823, 0.376);
-  background-color: hsl(356, 0.823, 0.25);
+  background-color: darken(@blood, 25%);
   z-index: -1;
 
   &:before {
