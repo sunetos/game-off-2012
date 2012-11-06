@@ -755,13 +755,6 @@ a:hover {
 .styles section.big {
   min-height: 100px;
 }
-.animated {
-  -webkit-transform: translateZ(0);
-  -moz-transform: translateZ(0);
-  -o-transform: translateZ(0);
-  -ms-transform: translateZ(0);
-  transform: translateZ(0);
-}
 @-moz-keyframes scroll-bg-vert {
 from {
   background-position: 0 0;
@@ -805,6 +798,11 @@ to {
   zoom: 1;
 }
 .ether {
+  -webkit-transform: translateZ(0);
+  -moz-transform: translateZ(0);
+  -o-transform: translateZ(0);
+  -ms-transform: translateZ(0);
+  transform: translateZ(0);
   -webkit-box-sizing: border-box;
   -moz-box-sizing: border-box;
   box-sizing: border-box;
@@ -817,6 +815,11 @@ to {
   z-index: -1;
 }
 .ether:before {
+  -webkit-transform: translateZ(0);
+  -moz-transform: translateZ(0);
+  -o-transform: translateZ(0);
+  -ms-transform: translateZ(0);
+  transform: translateZ(0);
   -webkit-box-sizing: border-box;
   -moz-box-sizing: border-box;
   box-sizing: border-box;
@@ -925,6 +928,9 @@ to {
   width: 100%;
   position: relative;
 }
+.map nav ul li.active {
+  background-color: rgba(0, 255, 0, 0.25);
+}
 .map nav ul li + li {
   border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
@@ -970,4 +976,56 @@ to {
   top: 5px;
   width: 10%;
   height: 40%;
+}
+.game aside {
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 15%;
+  height: 100%;
+  border-right: 1px solid rgba(255, 255, 255, 0.5);
+  background-color: rgba(0, 0, 0, 0.25);
+}
+.game aside p {
+  color: #ddd;
+  margin: 5px;
+}
+.game .regions {
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+  position: absolute;
+  width: 70%;
+  height: 100%;
+  top: 0;
+  left: 15%;
+  z-index: 2;
+}
+.game section {
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: none;
+}
+.game section.active {
+  display: block;
+}
+.game section h2 {
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+  height: 50px;
+  line-height: 50px;
+  margin: 0;
+  padding: 0 10px;
+  color: #eeddcc;
+  text-align: center;
 }

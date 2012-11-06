@@ -39,21 +39,25 @@ a, a:focus, a:hover {
   }
 }
 
-.animated {
-  .translateZ(0);
-}
-
 .from(bg-vert-top) { background-position: 0 0; }
 .to(bg-vert-bottom) { background-position: 0 100%; }
 .keyframes(scroll-bg-vert, bg-vert-top, bg-vert-bottom);
 
 @blood: hsl(356, 0.823, 0.376);
+@panel-border: rgba(255, 255, 255, 1.0);
+@panel-background: rgba(0, 0, 0, 1.0);
+@panel-hover: rgba(255, 255, 255, 1.0);
+@text: #edc;
+@active: rgba(0, 255, 0, 1.0);
+
 .ether {
+  .translateZ(0);
   .stretch-rel;
   background-color: darken(@blood, 25%);
   z-index: -1;
 
   &:before {
+    .translateZ(0);
     .stretch-abs;
     background: url(/img/blood-cells-grey-alpha-png8.png) repeat 0 0 scroll;
     content: '';
@@ -72,14 +76,10 @@ a, a:focus, a:hover {
 }
 
 .map {
-  @border: rgba(255, 255, 255, 1.0);
-  @background: rgba(0, 0, 0, 1.0);
-  @hover: rgba(255, 255, 255, 1.0);
-
   width: 100px;
   height: 200px;
-  border: 1px solid fade(@border, 50%);
-  background-color: fade(@background, 25%);
+  border: 1px solid fade(@panel-border, 50%);
+  background-color: fade(@panel-background, 25%);
   .border-radius(3px);
   overflow: hidden;
 
@@ -105,16 +105,19 @@ a, a:focus, a:hover {
         display: block;
         width: 100%;
         position: relative;
+        &.active {
+          background-color: fade(@active, 25%);
+        }
       }
       li + li {
-        border-top: 1px solid fade(@border, 10%);
+        border-top: 1px solid fade(@panel-border, 10%);
       }
     }
     a {
       .stretch-abs;
       text-decoration: none;
       &:hover {
-        background-color: fade(@hover, 25%);
+        background-color: fade(@panel-hover, 25%);
       }
     }
     .head { height: 16%; }
@@ -131,5 +134,47 @@ a, a:focus, a:hover {
     top: 5px;
     width: 10%;
     height: 40%;
+  }
+
+  @aside-width: 15%;
+  aside {
+    .box-sizing(border-box);
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: @aside-width;
+    height: 100%;
+
+    border-right: 1px solid fade(@panel-border, 50%);
+    background-color: fade(@panel-background, 25%);
+    p {
+      color: #ddd;
+      margin: 5px;
+    }
+  }
+
+  .regions {
+    .box-sizing(border-box);
+    position: absolute;
+    width: 70%;
+    height: 100%;
+    top: 0;
+    left: @aside-width;
+    z-index: 2;
+  }
+  section {
+    .stretch-abs;
+    display: none;
+    &.active { display: block; }
+
+    h2 {
+      .box-sizing(border-box);
+      height: 50px;
+      line-height: 50px;
+      margin: 0;
+      padding: 0 10px;
+      color: @text;
+      text-align: center;
+    }
   }
 }
