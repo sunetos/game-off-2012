@@ -695,25 +695,72 @@ textarea {
 
     More info at: http://lesselements.com
 -----------------------------------------------------*/
-.stretch {
+.stretch-abs {
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
   position: absolute;
   top: 0;
-  right: 0;
-  bottom: 0;
   left: 0;
-  width: auto;
-  height: auto;
+  width: 100%;
+  height: 100%;
+}
+.stretch-rel {
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+  position: relative;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+html,
+body {
+  width: 100%;
+  height: 100%;
 }
 body {
   background: #000;
 }
+a,
+a:focus,
+a:hover {
+  outline: 0;
+}
+#logo {
+  margin: 0;
+  position: absolute;
+  right: 20px;
+  bottom: 10px;
+  font-family: 'Anaheim', sans-serif;
+  font-size: 32px;
+  color: #edc;
+  text-shadow: 0px 1px 0px #999, 1px 2px 0px #777, 2px 3px 0px #666, 3px 4px 0px #333, 4px 5px 8px #885500;
+}
 .styles section {
+  *zoom: 1;
   position: relative;
-  min-width: 640px;
-  min-height: 10px;
+  width: 640px;
+  height: 10px;
+}
+.styles section:before,
+.styles section:after {
+  content: '';
+  display: table;
+}
+.styles section:after {
+  clear: both;
 }
 .styles section.big {
   min-height: 100px;
+}
+.animated {
+  -webkit-transform: translateZ(0);
+  -moz-transform: translateZ(0);
+  -o-transform: translateZ(0);
+  -ms-transform: translateZ(0);
+  transform: translateZ(0);
 }
 @-moz-keyframes scroll-bg-vert {
 from {
@@ -758,23 +805,26 @@ to {
   zoom: 1;
 }
 .ether {
-  position: absolute;
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+  position: relative;
   top: 0;
-  right: 0;
-  bottom: 0;
   left: 0;
-  width: auto;
-  height: auto;
+  width: 100%;
+  height: 100%;
   background-color: #740b12;
+  z-index: -1;
 }
 .ether:before {
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
   position: absolute;
   top: 0;
-  right: 0;
-  bottom: 0;
   left: 0;
-  width: auto;
-  height: auto;
+  width: 100%;
+  height: 100%;
   background: url(/img/blood-cells-grey-alpha-png8.png) repeat 0 0 scroll;
   content: '';
   -khtml-opacity: 0.5;
@@ -800,4 +850,124 @@ to {
   background-clip: padding-box;
   border: 2px solid #999;
   background-color: #ccc;
+}
+.map {
+  width: 100px;
+  height: 200px;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  background-color: rgba(0, 0, 0, 0.25);
+  -webkit-border-top-right-radius: 3px;
+  -webkit-border-bottom-right-radius: 0;
+  -webkit-border-bottom-left-radius: 0;
+  -webkit-border-top-left-radius: 0;
+  -moz-border-radius-topright: 3px;
+  -moz-border-radius-bottomright: 0;
+  -moz-border-radius-bottomleft: 0;
+  -moz-border-radius-topleft: 0;
+  border-top-right-radius: 3px;
+  border-bottom-right-radius: 0;
+  border-bottom-left-radius: 0;
+  border-top-left-radius: 0;
+  -webkit-border-radius: 3px;
+  -webkit-background-clip: padding-box;
+  -moz-border-radius: 3px;
+  -moz-background-clip: padding;
+  border-radius: 3px;
+  background-clip: padding-box;
+  overflow: hidden;
+}
+.map .silhouette {
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+  position: relative;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+.map .silhouette:before {
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  bottom: 5px;
+  left: 5px;
+  width: auto;
+  height: auto;
+  content: '';
+  background: url(/img/human-body-silhouette.svg) no-repeat center center;
+  -webkit-background-size: contain;
+  -moz-background-size: contain;
+  background-size: contain;
+}
+.map nav {
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+}
+.map nav ul {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+.map nav ul li {
+  display: block;
+  width: 100%;
+  position: relative;
+}
+.map nav ul li + li {
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+.map nav a {
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  text-decoration: none;
+}
+.map nav a:hover {
+  background-color: rgba(255, 255, 255, 0.25);
+}
+.map nav .head {
+  height: 16%;
+}
+.map nav .torso {
+  height: 25%;
+}
+.map nav .midsection {
+  height: 25%;
+}
+.map nav .legs {
+  height: 34%;
+}
+.game {
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+  position: relative;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+.game .map {
+  position: absolute;
+  right: 5px;
+  top: 5px;
+  width: 10%;
+  height: 40%;
 }

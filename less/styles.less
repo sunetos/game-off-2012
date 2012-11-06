@@ -3,15 +3,35 @@
 @import 'elements.less';
 @import 'mixins.less';
 
+html, body {
+  width: 100%;
+  height: 100%;
+}
 body {
   background: #000;
+}
+a, a:focus, a:hover {
+  outline: 0;
+}
+
+#logo {
+  margin: 0;
+  position: absolute;
+  right: 20px;
+  bottom: 10px;
+
+  font-family: 'Anaheim', sans-serif;
+  font-size: 32px;
+  color: #edc;
+  text-shadow: 0px 1px 0px #999, 1px 2px 0px #777, 2px 3px 0px #666, 3px 4px 0px #333, 4px 5px 8px #885500;
 }
 
 .styles {
   section {
+    .clearfix;
     position: relative;
-    min-width: 640px;
-    min-height: 10px;
+    width: 640px;
+    height: 10px;
 
     &.big {
       min-height: 100px;
@@ -19,17 +39,22 @@ body {
   }
 }
 
+.animated {
+  .translateZ(0);
+}
+
 .from(bg-vert-top) { background-position: 0 0; }
 .to(bg-vert-bottom) { background-position: 0 100%; }
 .keyframes(scroll-bg-vert, bg-vert-top, bg-vert-bottom);
 
 .ether {
-  .stretch;
+  .stretch-rel;
   //background-color: hsl(356, 0.823, 0.376);
   background-color: hsl(356, 0.823, 0.25);
+  z-index: -1;
 
   &:before {
-    .stretch;
+    .stretch-abs;
     background: url(/img/blood-cells-grey-alpha-png8.png) repeat 0 0 scroll;
     content: '';
     .opacity(0.5);
@@ -40,9 +65,71 @@ body {
   }
 }
 
-
 .cell {
   .circle(20px);
   border: 2px solid #999;
   background-color: #ccc;
+}
+
+.map {
+  @border: rgba(255, 255, 255, 1.0);
+  @background: rgba(0, 0, 0, 1.0);
+  @hover: rgba(255, 255, 255, 1.0);
+
+  width: 100px;
+  height: 200px;
+  border: 1px solid fade(@border, 50%);
+  background-color: fade(@background, 25%);
+  .border-radius(3px);
+  overflow: hidden;
+
+  .silhouette {
+    .stretch-rel;
+
+    &:before {
+      .stretch-pad(5px);
+      content: '';
+      background: url(/img/human-body-silhouette.svg) no-repeat center center;
+      .background-size(contain);
+    }
+  }
+  nav {
+    .stretch-abs;
+    z-index: 1;
+    ul {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      li {
+        display: block;
+        width: 100%;
+        position: relative;
+      }
+      li + li {
+        border-top: 1px solid fade(@border, 10%);
+      }
+    }
+    a {
+      .stretch-abs;
+      text-decoration: none;
+      &:hover {
+        background-color: fade(@hover, 25%);
+      }
+    }
+    .head { height: 16%; }
+    .torso { height: 25%; }
+    .midsection { height: 25%; }
+    .legs { height: 34%; }
+  }
+}
+.game {
+  .stretch-rel;
+  .map {
+    position: absolute;
+    right: 5px;
+    top: 5px;
+    width: 10%;
+    height: 40%;
+  }
 }
