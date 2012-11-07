@@ -1,25 +1,31 @@
 /// <reference path="libs/jquery.ts" />
 
+// Simple pubsub based on https://gist.github.com/1319216
 module Msg {
   var $elem = $({});
 
-  export function subscribe(topic:string, cb:Function) {
+  export function sub(topic:string, cb:Function) {
     $elem.on(topic, () => {
       return cb.apply(this, Array.prototype.slice.call(arguments, 1));
     });
   };
 
-  export function unsubscribe(...args: any[]) {
+  export function unsub(...args: any[]) {
     $elem.off.apply($elem, args);
   };
 
-  export function publish(...args: any[]) {
+  export function pub(...args: any[]) {
     $elem.trigger.apply($elem, args);
   };
 }
 
 interface HasElem {
   $elem: JQuery;
+}
+
+interface InGrid {
+  row: number;
+  col: number;
 }
 
 class Cell implements HasElem {
@@ -55,6 +61,6 @@ class Game implements HasElem {
   constructor(elem:any) {
     this.$elem = $(elem);
     this.body = new Body(this.$elem.find('.body'));
-    Msg.publish('game-init', this);
+    Msg.pub('game-init', this);
   }
 }

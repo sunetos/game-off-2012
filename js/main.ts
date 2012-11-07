@@ -13,7 +13,7 @@ interface Window {
 }
 
 $(function() {
-  Msg.subscribe('game-init', function(...args: any[]) {
+  Msg.sub('game-init', function(...args: any[]) {
     console.log('game-init');
     console.log(args);
   });

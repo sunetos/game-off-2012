@@ -2,31 +2,31 @@ var Msg;
 (function (Msg) {
     var $elem = $({
     });
-    function subscribe(topic, cb) {
+    function sub(topic, cb) {
         var _this = this;
         $elem.on(topic, function () {
             return cb.apply(_this, Array.prototype.slice.call(arguments, 1));
         });
     }
-    Msg.subscribe = subscribe;
+    Msg.sub = sub;
     ; ;
-    function unsubscribe() {
+    function unsub() {
         var args = [];
         for (var _i = 0; _i < (arguments.length - 0); _i++) {
             args[_i] = arguments[_i + 0];
         }
         $elem.off.apply($elem, args);
     }
-    Msg.unsubscribe = unsubscribe;
+    Msg.unsub = unsub;
     ; ;
-    function publish() {
+    function pub() {
         var args = [];
         for (var _i = 0; _i < (arguments.length - 0); _i++) {
             args[_i] = arguments[_i + 0];
         }
         $elem.trigger.apply($elem, args);
     }
-    Msg.publish = publish;
+    Msg.pub = pub;
     ; ;
 })(Msg || (Msg = {}));
 
@@ -61,7 +61,7 @@ var Game = (function () {
     function Game(elem) {
         this.$elem = $(elem);
         this.body = new Body(this.$elem.find('.body'));
-        Msg.publish('game-init', this);
+        Msg.pub('game-init', this);
     }
     return Game;
 })();
@@ -70,7 +70,7 @@ $(document).on('click', '[href^="#"]', function (e) {
     $.bbq.pushState($(this).attr('href'), 0);
 });
 $(function () {
-    Msg.subscribe('game-init', function () {
+    Msg.sub('game-init', function () {
         var args = [];
         for (var _i = 0; _i < (arguments.length - 0); _i++) {
             args[_i] = arguments[_i + 0];
