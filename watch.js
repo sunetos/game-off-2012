@@ -4,7 +4,7 @@
  * I could not get this to work with python watchdog, so I used node.
  * Adding new compiler types should be trivial.
  * Currently has the following npm dependencies:
- * - log
+ * - log4js
  * - typescript
  * - less
  * - watchr
