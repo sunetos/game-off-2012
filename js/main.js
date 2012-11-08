@@ -33,34 +33,54 @@ var Msg;
 var Cell = (function () {
     function Cell(kind) {
         this.kind = kind;
-        this.$elem = $('<div class="cell"></div>');
+        this.$elem = $('<div class="cell"></div>').addClass(kind);
+        this.row = this.col = 0;
     }
+    Cell.prototype.setPos = function (row, col) {
+        this.row = row;
+        this.col = col;
+        this.$elem.data('cell-row', row).data('cell-col', col);
+    };
     return Cell;
 })();
 var CellGrid = (function () {
-    function CellGrid(name, elem) {
+    function CellGrid(name, elem, cfg) {
         this.name = name;
+        this.rows = 1;
+        this.cols = 1;
         this.$elem = $(elem);
+        this.rows = cfg.rows || 1;
+        this.cols = cfg.cols || 1;
+        this.fillGrid();
     }
+    CellGrid.prototype.fillGrid = function () {
+        for(var row = 0; row < this.rows; ++row) {
+            for(var col = 0; col < this.cols; ++col) {
+                var cell = new Cell('empty');
+                cell.setPos(row, col);
+                this.$elem.append(cell.$elem);
+            }
+        }
+    };
     return CellGrid;
 })();
 var Body = (function () {
-    function Body(elem) {
+    function Body(elem, cfg) {
         var _this = this;
         this.grids = {
         };
         this.$elem = $(elem);
         this.$elem.find('section').each(function (i, v) {
-            var grid = new CellGrid($(v).data('name'), v);
+            var grid = new CellGrid($(v).data('name'), $(v).find('.cells'), cfg);
             _this.grids[grid.name] = grid;
         });
     }
     return Body;
 })();
 var Game = (function () {
-    function Game(elem) {
+    function Game(elem, cfg) {
         this.$elem = $(elem);
-        this.body = new Body(this.$elem.find('.body'));
+        this.body = new Body(this.$elem.find('.body'), cfg);
         Msg.pub('game-init', this);
     }
     return Game;
@@ -78,7 +98,10 @@ $(function () {
         console.log('game-init');
         console.log(args);
     });
-    window.game = new Game('#game');
+    window.game = new Game('#game', {
+        rows: 8,
+        cols: 10
+    });
     function hashchange(e) {
         var param = $.bbq.getState();
         [

@@ -10,6 +10,9 @@
 @text: #ddd;
 @active: rgba(0, 255, 0, 1.0);
 
+@cell-rows: 8;
+@cell-cols: 10;
+
 
 html, body {
   width: 100%;
@@ -71,9 +74,25 @@ a, a:focus, a:hover {
 }
 
 .cell {
+  .box-sizing(border-box);
   .circle(20px);
   border: 2px solid #999;
   background-color: #ccc;
+
+  &:hover {
+    border: 2px solid #9f9;
+  }
+
+  .cells & {
+    float: left;
+    width: 100%/@cell-cols;
+    height: 100%/@cell-rows;
+    cursor: pointer;
+  }
+  .head & { background-color: #cfc; }
+  .torso & { background-color: #fcc; }
+  .midsection & { background-color: #ccf; }
+  .legs & { background-color: #ccc; }
 }
 
 .map {
@@ -176,6 +195,16 @@ a, a:focus, a:hover {
       padding: 0 10px;
       color: @text;
       text-align: center;
+    }
+
+    .grid {
+      .stretch-pad(20px);
+      top: 100px;
+      left: 50px;
+      right: 20px;
+      .cells {
+        .stretch-abs;
+      }
     }
   }
 }

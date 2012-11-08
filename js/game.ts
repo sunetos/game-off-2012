@@ -26,30 +26,51 @@ interface HasElem {
 interface InGrid {
   row: number;
   col: number;
+  setPos(row:number, col:number);
 }
 
-class Cell implements HasElem {
+class Cell implements HasElem, InGrid {
   $elem: JQuery;
   constructor(public kind:string) {
-    this.$elem = $('<div class="cell"></div>');
+    this.$elem = $('<div class="cell"></div>').addClass(kind);
+    this.row = this.col = 0;
+  }
+  setPos(row:number, col:number) {
+    this.row = row;
+    this.col = col;
+    this.$elem.data('cell-row', row).data('cell-col', col);
   }
 }
 
 class CellGrid implements HasElem {
   $elem: JQuery;
   cells: Cell[];
-  constructor(public name:string, elem:any) {
+  rows = 1;
+  cols = 1;
+  constructor(public name:string, elem:any, cfg) {
     this.$elem = $(elem);
+    this.rows = cfg.rows || 1;
+    this.cols = cfg.cols || 1;
+    this.fillGrid();
+  }
+  fillGrid() {
+    for (var row = 0; row < this.rows; ++row) {
+      for (var col = 0; col < this.cols; ++col) {
+        var cell = new Cell('empty');
+        cell.setPos(row, col);
+        this.$elem.append(cell.$elem);
+      }
+    }
   }
 }
 
 class Body implements HasElem {
   $elem: JQuery;
   grids = {};
-  constructor(elem:any) {
+  constructor(elem:any, cfg:any) {
     this.$elem = $(elem);
     this.$elem.find('section').each((i, v) => {
-      var grid = new CellGrid($(v).data('name'), v);
+      var grid = new CellGrid($(v).data('name'), $(v).find('.cells'), cfg);
       this.grids[grid.name] = grid;
     });
   }
@@ -58,9 +79,9 @@ class Body implements HasElem {
 class Game implements HasElem {
   $elem: JQuery;
   body: Body;
-  constructor(elem:any) {
+  constructor(elem:any, cfg:any) {
     this.$elem = $(elem);
-    this.body = new Body(this.$elem.find('.body'));
+    this.body = new Body(this.$elem.find('.body'), cfg);
     Msg.pub('game-init', this);
   }
 }

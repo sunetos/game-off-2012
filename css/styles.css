@@ -701,9 +701,11 @@ textarea {
   box-sizing: border-box;
   position: absolute;
   top: 0;
+  right: 0;
+  bottom: 0;
   left: 0;
-  width: 100%;
-  height: 100%;
+  width: auto;
+  height: auto;
 }
 .stretch-rel {
   -webkit-box-sizing: border-box;
@@ -825,9 +827,11 @@ to {
   box-sizing: border-box;
   position: absolute;
   top: 0;
+  right: 0;
+  bottom: 0;
   left: 0;
-  width: 100%;
-  height: 100%;
+  width: auto;
+  height: auto;
   background: url(/img/blood-cells-grey-alpha-png8.png) repeat 0 0 scroll;
   content: '';
   -khtml-opacity: 0.3;
@@ -843,6 +847,9 @@ to {
   animation: scroll-bg-vert 30s linear 0s infinite;
 }
 .cell {
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
   width: 20px;
   height: 20px;
   -webkit-border-radius: 20px;
@@ -852,6 +859,27 @@ to {
   -webkit-background-clip: padding-box;
   background-clip: padding-box;
   border: 2px solid #999;
+  background-color: #ccc;
+}
+.cell:hover {
+  border: 2px solid #9f9;
+}
+.cells .cell {
+  float: left;
+  width: 10%;
+  height: 12.5%;
+  cursor: pointer;
+}
+.head .cell {
+  background-color: #cfc;
+}
+.torso .cell {
+  background-color: #fcc;
+}
+.midsection .cell {
+  background-color: #ccf;
+}
+.legs .cell {
   background-color: #ccc;
 }
 .map {
@@ -912,9 +940,11 @@ to {
   box-sizing: border-box;
   position: absolute;
   top: 0;
+  right: 0;
+  bottom: 0;
   left: 0;
-  width: 100%;
-  height: 100%;
+  width: auto;
+  height: auto;
   z-index: 1;
 }
 .map nav ul {
@@ -940,9 +970,11 @@ to {
   box-sizing: border-box;
   position: absolute;
   top: 0;
+  right: 0;
+  bottom: 0;
   left: 0;
-  width: 100%;
-  height: 100%;
+  width: auto;
+  height: auto;
   text-decoration: none;
 }
 .map nav a:hover {
@@ -1010,9 +1042,11 @@ to {
   box-sizing: border-box;
   position: absolute;
   top: 0;
+  right: 0;
+  bottom: 0;
   left: 0;
-  width: 100%;
-  height: 100%;
+  width: auto;
+  height: auto;
   display: none;
 }
 .game section.active {
@@ -1028,4 +1062,30 @@ to {
   padding: 0 10px;
   color: #dddddd;
   text-align: center;
+}
+.game section .grid {
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+  position: absolute;
+  top: 20px;
+  bottom: 20px;
+  left: 20px;
+  width: auto;
+  height: auto;
+  top: 100px;
+  left: 50px;
+  right: 20px;
+}
+.game section .grid .cells {
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  width: auto;
+  height: auto;
 }

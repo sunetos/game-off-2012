@@ -17,7 +17,7 @@ $(function() {
     console.log('game-init');
     console.log(args);
   });
-  window.game = new Game('#game');
+  window.game = new Game('#game', {rows: 8, cols: 10});
 
   function hashchange(e?) {
     var param = $.bbq.getState();
