@@ -21,7 +21,7 @@ $(function() {
 
   function hashchange(e?) {
     var param = $.bbq.getState();
-    ['.regions section', '.map nav li'].forEach((s) => {
+    ['.body section', '.map nav li'].forEach((s) => {
       $(s).removeClass('active').filter('.' + param.region).addClass('active');
     });
   }
