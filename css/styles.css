@@ -929,7 +929,7 @@ to {
   width: auto;
   height: auto;
   content: '';
-  background: url(img/human-body-silhouette.svg) no-repeat center center;
+  background: url(/img/human-body-silhouette.svg) no-repeat center center;
   -webkit-background-size: contain;
   -moz-background-size: contain;
   background-size: contain;
