@@ -10,6 +10,12 @@ module Msg {
     });
   };
 
+  export function one(topic:string, cb:Function) {
+    $elem.one(topic, () => {
+      return cb.apply(this, Array.prototype.slice.call(arguments, 1));
+    });
+  };
+
   export function unsub(...args: any[]) {
     $elem.off.apply($elem, args);
   };
@@ -29,8 +35,28 @@ interface InGrid {
   setPos(row:number, col:number);
 }
 
+var CELL_DEFS = {
+    'brain': {},
+    'lung': {},
+    'liver': {},
+    'muscle': {},
+};
+// TODO: Use typescript to build this from CELL_DEFS.
+var CELL_KINDS = 'brain lung liver muscle';
+var CELL_REGIONS = {
+    'head': ['brain'],
+    'torso': ['lung'],
+    'midsection': ['liver'],
+    'legs': ['muscle'],
+};
+
+
 class Cell implements HasElem, InGrid {
   $elem: JQuery;
+  row: number;
+  col: number;
+  bcastI: any;
+
   constructor(public kind:string) {
     this.$elem = $('<div class="cell"></div>').addClass(kind);
     this.row = this.col = 0;
@@ -40,27 +66,63 @@ class Cell implements HasElem, InGrid {
     this.col = col;
     this.$elem.data('cell-row', row).data('cell-col', col);
   }
+  birth() {
+    Msg.off('cell-vacant', self.request);
+    Msg.pub('cell-birth', self);
+    Msg.sub('cell-vacant', self.request);
+  }
+  request() {
+  }
+  die(reason:string, broadcast:number=0) {
+    Msg.pub('cell-death', self, reason);
+    this.$elem.removeClass(CELL_KINDS).addClass('empty');
+    if (broadcast) {
+      this.bcastI  = setInterval(() => {
+        Msg.pub('cell-vacant', this);
+      }, broadcast);
+    }
+  }
+  become(kind:string) {
+    this.kind = kind;
+    this.$elem.removeClass('empty').addClass(kind);
+    this.birth();
+  }
 }
 
 class CellGrid implements HasElem {
   $elem: JQuery;
-  cells: Cell[];
+  public cells:Cell[] = [];
   rows = 1;
   cols = 1;
   constructor(public name:string, elem:any, cfg) {
     this.$elem = $(elem);
-    this.rows = cfg.rows || 1;
-    this.cols = cfg.cols || 1;
-    this.fillGrid();
+    this.rows = Math.max(1, cfg.rows);
+    this.cols = Math.max(1, cfg.cols);
+    this.fill();
+    // TODO: Maybe randomize or something.
+    var seedKind = CELL_REGIONS[name][0];
+    this.seed(seedKind);
   }
-  fillGrid() {
+  clear() {
+    this.cells.forEach((cell) => { cell.die('clear'); });
+  }
+  fill(kind:string='empty') {
+    this.clear();
     for (var row = 0; row < this.rows; ++row) {
       for (var col = 0; col < this.cols; ++col) {
-        var cell = new Cell('empty');
+        var cell = new Cell(kind);
         cell.setPos(row, col);
         this.$elem.append(cell.$elem);
+        this.cells.push(cell);
+        cell.birth();
       }
     }
+  }
+  /** Assuming a grid of empty cells, kick things off with a single cell. */
+  seed(kind:string) {
+    var cell = this.cells[0];
+    cell.die('seeding');
+    cell.become(kind);
   }
 }
 

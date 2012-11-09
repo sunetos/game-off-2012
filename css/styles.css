@@ -882,6 +882,12 @@ to {
 .legs .cell {
   background-color: #ccc;
 }
+.cell.empty {
+  -khtml-opacity: 0.35;
+  -webkit-opacity: 0.35;
+  -moz-opacity: 0.35;
+  opacity: 0.35;
+}
 .map {
   width: 100px;
   height: 200px;
