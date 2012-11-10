@@ -870,16 +870,16 @@ to {
   height: 12.5%;
   cursor: pointer;
 }
-.head .cell {
+.cell.brain {
   background-color: #cfc;
 }
-.torso .cell {
+.cell.lung {
   background-color: #fcc;
 }
-.midsection .cell {
+.cell.liver {
   background-color: #ccf;
 }
-.legs .cell {
+.cell.muscle {
   background-color: #ccc;
 }
 .cell.empty {

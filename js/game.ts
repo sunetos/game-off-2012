@@ -25,6 +25,39 @@ module Msg {
   };
 }
 
+module Random {
+  export function int(min:number, max:number) {
+    return ((Math.random()*(max - min + 1)) + min) | 0;
+  }
+  export function choice(items:any[]) {
+    return items[int(0, items.length)];
+  }
+}
+
+
+// Automate boilerplate required for things like callbacks after stopping typing
+function renewableTimeout(func, delay) {
+  var callT = null, callI = delay;
+  function callClear() {
+    if (callT) {
+      clearTimeout(callT);
+      callT = null;
+    }
+  }
+  function callSet(overrideI) {
+    callClear();
+    callT = setTimeout(function() {
+      callT = null;
+      func();
+    }, (overrideI !== undefined) ? overrideI : callI);
+  }
+  function callRun() {
+    callClear();
+    func();
+  }
+  return {clear: callClear, set: callSet, run: callRun};
+}
+
 interface HasElem {
   $elem: JQuery;
 }
@@ -41,45 +74,79 @@ var CELL_DEFS = {
     'liver': {},
     'muscle': {},
 };
-// TODO: Use typescript to build this from CELL_DEFS.
-var CELL_KINDS = 'brain lung liver muscle';
+var CELL_KINDS = Object.keys(CELL_DEFS);
 var CELL_REGIONS = {
     'head': ['brain'],
     'torso': ['lung'],
     'midsection': ['liver'],
     'legs': ['muscle'],
 };
+var CELL_BROADCAST = 50;  // ms
+
+class CellProperties {
+  constructor(public reproduce:number=5, public apostosis:number=10) {
+  }
+}
 
 
 class Cell implements HasElem, InGrid {
-  $elem: JQuery;
-  row: number;
-  col: number;
-  bcastI: any;
+  $elem:JQuery;
+  row:number;
+  col:number;
+  broadcastT:any;
+  deathT:any;
+  props:CellProperties;
 
   constructor(public kind:string) {
     this.$elem = $('<div class="cell"></div>').addClass(kind);
     this.row = this.col = 0;
+    this.broadcastT = renewableTimeout(this.broadcast, CELL_BROADCAST);
+    this.deathT = renewableTimeout(this.die, CELL_BROADCAST);
+    this.props = new CellProperties(Random.int(3, 8), Random.int(6, 15));
   }
+  /** Only call this once for now, there's no cleanup. */
   setPos(row:number, col:number) {
     this.row = row;
     this.col = col;
     this.$elem.data('cell-row', row).data('cell-col', col);
+    [row - 1, row, row + 1].forEach((r) => {
+      [col - 1, col, col + 1].forEach((c) => {
+        if (r === row && c === col) return;
+        Msg.sub('cell:vacant:' + r + 'x' + c, this.request);
+        console.log('cell-vacant:' + r + 'x' + c);
+      });
+    });
   }
   birth() {
-    Msg.off('cell-vacant', self.request);
-    Msg.pub('cell-birth', self);
-    Msg.sub('cell-vacant', self.request);
+    Msg.pub('cell:birth', this);
+    console.log('birth', this.row, this.col, this.kind, this.kind === 'empty');
+    if (this.kind === 'empty') this.broadcastT.set();
   }
-  request() {
+  broadcast() {
+    if (this.kind !== 'empty') return;
+
+    var suitors = [];
+    function response(cell:Cell) {
+    }
+    Msg.sub('cell:response:' + this.row + 'x' + this.col, (cell) => {
+      suitors.push(cell);
+      console.log(suitors);
+    });
+    Msg.pub('cell:vacant:' + this.row + 'x' + this.col, this);
+    this.broadcastT.set();
   }
-  die(reason:string, broadcast:number=0) {
-    Msg.pub('cell-death', self, reason);
+  request(other:Cell) {
+    console.log('Got a request', this.kind);
+    if (this.kind === 'empty') return;
+    Msg.pub('cell:response:' + other.row + 'x' + other.col, this);
+    console.log('cell:response:' + other.row + 'x' + other.col, this);
+  }
+  die(reason:string, broadcast:bool=true) {
+    Msg.pub('cell:death', self, reason);
     this.$elem.removeClass(CELL_KINDS).addClass('empty');
     if (broadcast) {
-      this.bcastI  = setInterval(() => {
-        Msg.pub('cell-vacant', this);
-      }, broadcast);
+      console.log('setting timer');
+      this.broadcastT.set();
     }
   }
   become(kind:string) {
@@ -144,6 +211,6 @@ class Game implements HasElem {
   constructor(elem:any, cfg:any) {
     this.$elem = $(elem);
     this.body = new Body(this.$elem.find('.body'), cfg);
-    Msg.pub('game-init', this);
+    Msg.pub('game:init', this);
   }
 }

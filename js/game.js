@@ -38,6 +38,45 @@ var Msg;
     ; ;
 })(Msg || (Msg = {}));
 
+var Random;
+(function (Random) {
+    function int(min, max) {
+        return ((Math.random() * (max - min + 1)) + min) | 0;
+    }
+    Random.int = int;
+    function choice(items) {
+        return items[int(0, items.length)];
+    }
+    Random.choice = choice;
+})(Random || (Random = {}));
+
+function renewableTimeout(func, delay) {
+    var callT = null;
+    var callI = delay;
+
+    function callClear() {
+        if(callT) {
+            clearTimeout(callT);
+            callT = null;
+        }
+    }
+    function callSet(overrideI) {
+        callClear();
+        callT = setTimeout(function () {
+            callT = null;
+            func();
+        }, (overrideI !== undefined) ? overrideI : callI);
+    }
+    function callRun() {
+        callClear();
+        func();
+    }
+    return {
+        clear: callClear,
+        set: callSet,
+        run: callRun
+    };
+}
 var CELL_DEFS = {
     'brain': {
     },
@@ -48,7 +87,7 @@ var CELL_DEFS = {
     'muscle': {
     }
 };
-var CELL_KINDS = 'brain lung liver muscle';
+var CELL_KINDS = Object.keys(CELL_DEFS);
 var CELL_REGIONS = {
     'head': [
         'brain'
@@ -63,33 +102,84 @@ var CELL_REGIONS = {
         'muscle'
     ]
 };
+var CELL_BROADCAST = 50;
+var CellProperties = (function () {
+    function CellProperties(reproduce, apostosis) {
+        if (typeof reproduce === "undefined") { reproduce = 5; }
+        if (typeof apostosis === "undefined") { apostosis = 10; }
+        this.reproduce = reproduce;
+        this.apostosis = apostosis;
+    }
+    return CellProperties;
+})();
 var Cell = (function () {
     function Cell(kind) {
         this.kind = kind;
         this.$elem = $('<div class="cell"></div>').addClass(kind);
         this.row = this.col = 0;
+        this.broadcastT = renewableTimeout(this.broadcast, CELL_BROADCAST);
+        this.deathT = renewableTimeout(this.die, CELL_BROADCAST);
+        this.props = new CellProperties(Random.int(3, 8), Random.int(6, 15));
     }
     Cell.prototype.setPos = function (row, col) {
+        var _this = this;
         this.row = row;
         this.col = col;
         this.$elem.data('cell-row', row).data('cell-col', col);
+        [
+            row - 1, 
+            row, 
+            row + 1
+        ].forEach(function (r) {
+            [
+                col - 1, 
+                col, 
+                col + 1
+            ].forEach(function (c) {
+                if(r === row && c === col) {
+                    return;
+                }
+                Msg.sub('cell:vacant:' + r + 'x' + c, _this.request);
+                console.log('cell-vacant:' + r + 'x' + c);
+            });
+        });
     };
     Cell.prototype.birth = function () {
-        Msg.off('cell-vacant', self.request);
-        Msg.pub('cell-birth', self);
-        Msg.sub('cell-vacant', self.request);
+        Msg.pub('cell:birth', this);
+        console.log('birth', this.row, this.col, this.kind, this.kind === 'empty');
+        if(this.kind === 'empty') {
+            this.broadcastT.set();
+        }
     };
-    Cell.prototype.request = function () {
+    Cell.prototype.broadcast = function () {
+        if(this.kind !== 'empty') {
+            return;
+        }
+        var suitors = [];
+        function response(cell) {
+        }
+        Msg.sub('cell:response:' + this.row + 'x' + this.col, function (cell) {
+            suitors.push(cell);
+            console.log(suitors);
+        });
+        Msg.pub('cell:vacant:' + this.row + 'x' + this.col, this);
+        this.broadcastT.set();
+    };
+    Cell.prototype.request = function (other) {
+        console.log('Got a request', this.kind);
+        if(this.kind === 'empty') {
+            return;
+        }
+        Msg.pub('cell:response:' + other.row + 'x' + other.col, this);
+        console.log('cell:response:' + other.row + 'x' + other.col, this);
     };
     Cell.prototype.die = function (reason, broadcast) {
-        if (typeof broadcast === "undefined") { broadcast = 0; }
-        var _this = this;
-        Msg.pub('cell-death', self, reason);
+        if (typeof broadcast === "undefined") { broadcast = true; }
+        Msg.pub('cell:death', self, reason);
         this.$elem.removeClass(CELL_KINDS).addClass('empty');
         if(broadcast) {
-            this.bcastI = setInterval(function () {
-                Msg.pub('cell-vacant', _this);
-            }, broadcast);
+            console.log('setting timer');
+            this.broadcastT.set();
         }
     };
     Cell.prototype.become = function (kind) {
@@ -154,7 +244,7 @@ var Game = (function () {
     function Game(elem, cfg) {
         this.$elem = $(elem);
         this.body = new Body(this.$elem.find('.body'), cfg);
-        Msg.pub('game-init', this);
+        Msg.pub('game:init', this);
     }
     return Game;
 })();

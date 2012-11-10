@@ -13,8 +13,8 @@ interface Window {
 }
 
 $(function() {
-  Msg.sub('game-init', function(...args: any[]) {
-    console.log('game-init');
+  Msg.sub('game:init', function(...args: any[]) {
+    console.log('game:init');
     console.log(args);
   });
   window.game = new Game('#game', {rows: 8, cols: 10});
