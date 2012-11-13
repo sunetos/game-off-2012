@@ -65,7 +65,7 @@ interface HasElem {
 interface InGrid {
   row: number;
   col: number;
-  setPos(row:number, col:number);
+  addToGrid(grid:any, row:number, col:number);
 }
 
 var CELL_DEFS = {
@@ -81,7 +81,7 @@ var CELL_REGIONS = {
     'midsection': ['liver'],
     'legs': ['muscle'],
 };
-var CELL_BROADCAST = 50;  // ms
+var CELL_BROADCAST = 150;  // ms
 
 class CellProperties {
   constructor(public reproduce:number=5, public apostosis:number=10) {
@@ -91,61 +91,66 @@ class CellProperties {
 
 class Cell implements HasElem, InGrid {
   $elem:JQuery;
+  grid:CellGrid;
   row:number;
   col:number;
+  gridPos:string;
   broadcastT:any;
   deathT:any;
   props:CellProperties;
+  respond:Function;  // Set every broadcast
 
   constructor(public kind:string) {
     this.$elem = $('<div class="cell"></div>').addClass(kind);
     this.row = this.col = 0;
-    this.broadcastT = renewableTimeout(this.broadcast, CELL_BROADCAST);
-    this.deathT = renewableTimeout(this.die, CELL_BROADCAST);
+    this.broadcastT = renewableTimeout($.proxy(this, 'broadcast'), CELL_BROADCAST);
+    this.deathT = renewableTimeout($.proxy(this, 'die'), CELL_BROADCAST);
     this.props = new CellProperties(Random.int(3, 8), Random.int(6, 15));
   }
   /** Only call this once for now, there's no cleanup. */
-  setPos(row:number, col:number) {
+  addToGrid(grid:CellGrid, row:number, col:number) {
+    this.grid = grid;
     this.row = row;
     this.col = col;
+    this.gridPos = grid.name + '-' + row + 'x' + col;
     this.$elem.data('cell-row', row).data('cell-col', col);
     [row - 1, row, row + 1].forEach((r) => {
       [col - 1, col, col + 1].forEach((c) => {
         if (r === row && c === col) return;
-        Msg.sub('cell:vacant:' + r + 'x' + c, this.request);
-        console.log('cell-vacant:' + r + 'x' + c);
+        var gridPos = grid.name + '-' + r + 'x' + c;
+        Msg.sub('cell:vacant:' + gridPos, $.proxy(this, 'request'));
       });
     });
   }
   birth() {
     Msg.pub('cell:birth', this);
-    console.log('birth', this.row, this.col, this.kind, this.kind === 'empty');
     if (this.kind === 'empty') this.broadcastT.set();
   }
   broadcast() {
     if (this.kind !== 'empty') return;
 
     var suitors = [];
-    function response(cell:Cell) {
-    }
-    Msg.sub('cell:response:' + this.row + 'x' + this.col, (cell) => {
+    this.respond = (cell:Cell) => {
       suitors.push(cell);
-      console.log(suitors);
-    });
-    Msg.pub('cell:vacant:' + this.row + 'x' + this.col, this);
-    this.broadcastT.set();
+    }
+    Msg.pub('cell:vacant:' + this.gridPos, this);
+    if (!suitors.length) {
+      this.broadcastT.set();
+      return;
+    }
+    // TODO: Make the selection more advanced.
+    suitors.sort((c1, c2) => c1.props.reproduce - c2.props.reproduce);
+    var cloner = suitors[0];
+    this.become(cloner.kind);
   }
   request(other:Cell) {
-    console.log('Got a request', this.kind);
     if (this.kind === 'empty') return;
-    Msg.pub('cell:response:' + other.row + 'x' + other.col, this);
-    console.log('cell:response:' + other.row + 'x' + other.col, this);
+    other.respond(this);
   }
   die(reason:string, broadcast:bool=true) {
     Msg.pub('cell:death', self, reason);
     this.$elem.removeClass(CELL_KINDS).addClass('empty');
     if (broadcast) {
-      console.log('setting timer');
       this.broadcastT.set();
     }
   }
@@ -178,7 +183,7 @@ class CellGrid implements HasElem {
     for (var row = 0; row < this.rows; ++row) {
       for (var col = 0; col < this.cols; ++col) {
         var cell = new Cell(kind);
-        cell.setPos(row, col);
+        cell.addToGrid(this, row, col);
         this.$elem.append(cell.$elem);
         this.cells.push(cell);
         cell.birth();

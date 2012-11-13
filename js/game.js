@@ -102,7 +102,7 @@ var CELL_REGIONS = {
         'muscle'
     ]
 };
-var CELL_BROADCAST = 50;
+var CELL_BROADCAST = 150;
 var CellProperties = (function () {
     function CellProperties(reproduce, apostosis) {
         if (typeof reproduce === "undefined") { reproduce = 5; }
@@ -117,14 +117,16 @@ var Cell = (function () {
         this.kind = kind;
         this.$elem = $('<div class="cell"></div>').addClass(kind);
         this.row = this.col = 0;
-        this.broadcastT = renewableTimeout(this.broadcast, CELL_BROADCAST);
-        this.deathT = renewableTimeout(this.die, CELL_BROADCAST);
+        this.broadcastT = renewableTimeout($.proxy(this, 'broadcast'), CELL_BROADCAST);
+        this.deathT = renewableTimeout($.proxy(this, 'die'), CELL_BROADCAST);
         this.props = new CellProperties(Random.int(3, 8), Random.int(6, 15));
     }
-    Cell.prototype.setPos = function (row, col) {
+    Cell.prototype.addToGrid = function (grid, row, col) {
         var _this = this;
+        this.grid = grid;
         this.row = row;
         this.col = col;
+        this.gridPos = grid.name + '-' + row + 'x' + col;
         this.$elem.data('cell-row', row).data('cell-col', col);
         [
             row - 1, 
@@ -139,14 +141,13 @@ var Cell = (function () {
                 if(r === row && c === col) {
                     return;
                 }
-                Msg.sub('cell:vacant:' + r + 'x' + c, _this.request);
-                console.log('cell-vacant:' + r + 'x' + c);
+                var gridPos = grid.name + '-' + r + 'x' + c;
+                Msg.sub('cell:vacant:' + gridPos, $.proxy(_this, 'request'));
             });
         });
     };
     Cell.prototype.birth = function () {
         Msg.pub('cell:birth', this);
-        console.log('birth', this.row, this.col, this.kind, this.kind === 'empty');
         if(this.kind === 'empty') {
             this.broadcastT.set();
         }
@@ -156,29 +157,32 @@ var Cell = (function () {
             return;
         }
         var suitors = [];
-        function response(cell) {
-        }
-        Msg.sub('cell:response:' + this.row + 'x' + this.col, function (cell) {
+        this.respond = function (cell) {
             suitors.push(cell);
-            console.log(suitors);
+        };
+        Msg.pub('cell:vacant:' + this.gridPos, this);
+        if(!suitors.length) {
+            this.broadcastT.set();
+            return;
+        }
+        suitors.sort(function (c1, c2) {
+            return c1.props.reproduce - c2.props.reproduce;
         });
-        Msg.pub('cell:vacant:' + this.row + 'x' + this.col, this);
-        this.broadcastT.set();
+        var cloner = suitors[0];
+        this.become(cloner.kind);
     };
     Cell.prototype.request = function (other) {
-        console.log('Got a request', this.kind);
         if(this.kind === 'empty') {
             return;
         }
-        Msg.pub('cell:response:' + other.row + 'x' + other.col, this);
-        console.log('cell:response:' + other.row + 'x' + other.col, this);
+        console.log('responding to request');
+        other.respond(this);
     };
     Cell.prototype.die = function (reason, broadcast) {
         if (typeof broadcast === "undefined") { broadcast = true; }
         Msg.pub('cell:death', self, reason);
         this.$elem.removeClass(CELL_KINDS).addClass('empty');
         if(broadcast) {
-            console.log('setting timer');
             this.broadcastT.set();
         }
     };
@@ -213,7 +217,7 @@ var CellGrid = (function () {
         for(var row = 0; row < this.rows; ++row) {
             for(var col = 0; col < this.cols; ++col) {
                 var cell = new Cell(kind);
-                cell.setPos(row, col);
+                cell.addToGrid(this, row, col);
                 this.$elem.append(cell.$elem);
                 this.cells.push(cell);
                 cell.birth();
