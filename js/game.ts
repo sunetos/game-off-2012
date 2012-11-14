@@ -1,4 +1,5 @@
 /// <reference path="libs/jquery.ts" />
+/// <reference path="libs/tween.d.ts" />
 
 // Simple pubsub based on https://gist.github.com/1319216
 module Msg {
@@ -90,16 +91,16 @@ class CellProperties {
 
 
 class Cell implements HasElem, InGrid {
-  $elem:JQuery;
-  $props:JQuery;
-  grid:CellGrid;
-  row:number;
-  col:number;
-  gridPos:string;
-  broadcastT:any;
-  deathT:any;
-  props:CellProperties;
-  respond:Function;  // Set every broadcast
+  $elem: JQuery;
+  $props: JQuery;
+  grid: CellGrid;
+  row: number;
+  col: number;
+  gridPos: string;
+  broadcastT: any;
+  deathT: any;
+  props: CellProperties;
+  respond: Function;  // Set every broadcast
 
   constructor(public kind:string) {
     this.$elem = $('<div class="cell"></div>').addClass(kind);

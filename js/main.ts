@@ -19,6 +19,13 @@ $(function() {
   });
   window.game = new Game('#game', {rows: 8, cols: 10});
 
+  function animate() {
+    requestAnimationFrame(animate);
+    TWEEN.update();
+  }
+  animate();
+
+
   function hashchange(e?) {
     var param = $.bbq.getState();
     ['.body section', '.map nav li'].forEach((s) => {
