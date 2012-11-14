@@ -107,10 +107,10 @@ class Cell implements HasElem, InGrid {
     this.$props = $('<div class="props"></div>').appendTo(this.$elem);
     this.row = this.col = 0;
     this.broadcastT = renewableTimeout($.proxy(this, 'broadcast'), CELL_BROADCAST);
-    this.props = new CellProperties(Random.int(3, 8), Random.int(6, 15));
+    this.props = new CellProperties(Random.int(3, 8), Random.int(10, 20));
     Object.keys(this.props).forEach((prop) => {
       var $prop = $('<div></div>').addClass('prop ' + prop);
-      $prop.width(this.props[prop]).height(this.props[prop]);
+      $prop.height(this.props[prop]);
       $prop.appendTo(this.$props);
     });
   }
@@ -151,8 +151,16 @@ class Cell implements HasElem, InGrid {
     }
     // TODO: Make the selection more advanced.
     suitors.sort((c1, c2) => c1.props.reproduce - c2.props.reproduce);
-    var cloner = suitors[0];
-    setTimeout(() => this.become(cloner.kind), 150);
+    var cloner = suitors[0], $cloner = cloner.$elem;
+    //setTimeout(() => this.become(cloner.kind), 150);
+    var pos = this.$elem.position(), cpos = $cloner.position();
+    var $clone = $cloner.clone().css({
+        position: 'absolute', left: cpos.left, top: cpos.top
+    }).appendTo($cloner.parent());
+    $clone.animate({left: pos.left, top: pos.top}, 300, 'swing', () => {
+      $clone.remove();
+      this.become(cloner.kind, cloner.props);
+    });
   }
   request(other:Cell) {
     if (this.kind === 'empty') return;
@@ -166,8 +174,9 @@ class Cell implements HasElem, InGrid {
       this.broadcastT.set();
     }
   }
-  become(kind:string) {
+  become(kind:string, props?:CellProperties) {
     this.kind = kind;
+    if (props) this.props = props;
     this.$elem.removeClass('empty').addClass(kind);
     this.birth();
   }

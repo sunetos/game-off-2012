@@ -95,26 +95,23 @@ a, a:focus, a:hover {
   &.liver { background-color: #ccf; }
   &.muscle { background-color: #ccc; }
 
-  .transition(~"opacity 0.5s ease-in");
+  //.transition(~"opacity 0.5s ease-in");
   .opacity(1.0);
 
   .props {
     position: absolute;
-    width: 20px;
-    right: 0;
-    top: 0;
+    display: inline-block;
+    border: 1px solid #333;
+    height: 20px;
+    right: 3px;
+    bottom: 3px;
 
     .prop {
       .opacity(0.8);
-      .rounded(50%);
-      margin: 2px auto;
-      &:after {
-        display: block;
-        position: relative;
-        content: '';
-        width: 1px;
-        height: 20px;
-      }
+      display: inline-block;
+      vertical-align: bottom;
+      width: 4px;
+      height: 0;
 
       &.reproduce { background-color: #009900; }
       &.apostosis { background-color: #990000; }

@@ -120,10 +120,10 @@ var Cell = (function () {
         this.$props = $('<div class="props"></div>').appendTo(this.$elem);
         this.row = this.col = 0;
         this.broadcastT = renewableTimeout($.proxy(this, 'broadcast'), CELL_BROADCAST);
-        this.props = new CellProperties(Random.int(3, 8), Random.int(6, 15));
+        this.props = new CellProperties(Random.int(3, 8), Random.int(10, 20));
         Object.keys(this.props).forEach(function (prop) {
             var $prop = $('<div></div>').addClass('prop ' + prop);
-            $prop.width(_this.props[prop]).height(_this.props[prop]);
+            $prop.height(_this.props[prop]);
             $prop.appendTo(_this.$props);
         });
     }
@@ -184,9 +184,23 @@ var Cell = (function () {
             return c1.props.reproduce - c2.props.reproduce;
         });
         var cloner = suitors[0];
-        setTimeout(function () {
-            return _this.become(cloner.kind);
-        }, 150);
+        var $cloner = cloner.$elem;
+
+        var pos = this.$elem.position();
+        var cpos = $cloner.position();
+
+        var $clone = $cloner.clone().css({
+            position: 'absolute',
+            left: cpos.left,
+            top: cpos.top
+        }).appendTo($cloner.parent());
+        $clone.animate({
+            left: pos.left,
+            top: pos.top
+        }, 300, 'swing', function () {
+            $clone.remove();
+            _this.become(cloner.kind, cloner.props);
+        });
     };
     Cell.prototype.request = function (other) {
         if(this.kind === 'empty') {
@@ -203,8 +217,11 @@ var Cell = (function () {
             this.broadcastT.set();
         }
     };
-    Cell.prototype.become = function (kind) {
+    Cell.prototype.become = function (kind, props) {
         this.kind = kind;
+        if(props) {
+            this.props = props;
+        }
         this.$elem.removeClass('empty').addClass(kind);
         this.birth();
     };
