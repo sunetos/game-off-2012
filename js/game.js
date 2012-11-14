@@ -120,13 +120,17 @@ var Cell = (function () {
         this.$props = $('<div class="props"></div>').appendTo(this.$elem);
         this.row = this.col = 0;
         this.broadcastT = renewableTimeout($.proxy(this, 'broadcast'), CELL_BROADCAST);
-        this.deathT = renewableTimeout($.proxy(this, 'die'), CELL_BROADCAST);
         this.props = new CellProperties(Random.int(3, 8), Random.int(6, 15));
         Object.keys(this.props).forEach(function (prop) {
             var $prop = $('<div></div>').addClass('prop ' + prop);
             $prop.width(_this.props[prop]).height(_this.props[prop]);
             $prop.appendTo(_this.$props);
         });
+        var deathTime = this.props.apostosis * 1000;
+        this.deathT = new TWEEN.Tween(this.props).to({
+            apostosis: 0
+        }, deathTime);
+        this.deathT.onComplete($.proxy(this, 'die')).start();
     }
     Cell.prototype.addToGrid = function (grid, row, col) {
         var _this = this;

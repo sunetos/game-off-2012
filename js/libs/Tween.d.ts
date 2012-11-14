@@ -1,10 +1,27 @@
-interface TweenStatic {
-  REVISION: string;
-  getAll(): Tween[];
-  removeAll(): void;
-  add(tween:Tween): void;
-  remove(tween:Tween): void;
-  update(time:number): bool;
+module TWEEN {
+  export var REVISION: string;
+  export function getAll(): Tween[];
+  export function removeAll(): void;
+  export function add(tween:Tween): void;
+  export function remove(tween:Tween): void;
+  export function update(time:number): bool;
+
+  export class Tween {
+    constructor(object?:any);
+    to(properties:any, duration:number): Tween;
+    start(time?:number): Tween;
+    stop(): Tween;
+    delay(amount:number): Tween;
+    easing(easing): Tween;
+    interpolation(interpolation:Function): Tween;
+    chain(...tweens:Tween[]): Tween;
+    onStart(callback:Function): Tween;
+    onUpdate(callback:Function): Tween;
+    onComplete(callback:Function): Tween;
+    update(time:number): bool;
+  };
+  export var Easing: TweenEasing;
+  export var Interpolation: TweenInterpolation;
 }
 
 interface TweenEasing {
@@ -74,19 +91,3 @@ interface TweenInterpolation {
     Factorial(n): number;
   };
 }
-
-class Tween {
-  to(properties:any, duration:number): Tween;
-  start(time:number): Tween;
-  stop(): Tween;
-  delay(amount:number): Tween;
-  easing(easing): Tween;
-  interpolation(interpolation:Function): Tween;
-  chain(...tweens:Tween[]): Tween;
-  onStart(callback:Function): Tween;
-  onUpdate(callback:Function): Tween;
-  onComplete(callback:Function): Tween;
-  update(time:number): bool;
-}
-
-declare var TWEEN: TweenStatic;

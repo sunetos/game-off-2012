@@ -98,7 +98,7 @@ class Cell implements HasElem, InGrid {
   col: number;
   gridPos: string;
   broadcastT: any;
-  deathT: any;
+  deathT: TWEEN.Tween;
   props: CellProperties;
   respond: Function;  // Set every broadcast
 
@@ -107,13 +107,15 @@ class Cell implements HasElem, InGrid {
     this.$props = $('<div class="props"></div>').appendTo(this.$elem);
     this.row = this.col = 0;
     this.broadcastT = renewableTimeout($.proxy(this, 'broadcast'), CELL_BROADCAST);
-    this.deathT = renewableTimeout($.proxy(this, 'die'), CELL_BROADCAST);
     this.props = new CellProperties(Random.int(3, 8), Random.int(6, 15));
     Object.keys(this.props).forEach((prop) => {
       var $prop = $('<div></div>').addClass('prop ' + prop);
       $prop.width(this.props[prop]).height(this.props[prop]);
       $prop.appendTo(this.$props);
     });
+    var deathTime = this.props.apostosis*1000;
+    this.deathT = new TWEEN.Tween(this.props).to({apostosis: 0}, deathTime);
+    this.deathT.onComplete($.proxy(this, 'die')).start();
   }
   /** Only call this once for now, there's no cleanup. */
   addToGrid(grid:CellGrid, row:number, col:number) {
