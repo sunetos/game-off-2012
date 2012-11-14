@@ -81,7 +81,7 @@ var CELL_REGIONS = {
     'midsection': ['liver'],
     'legs': ['muscle'],
 };
-var CELL_BROADCAST = 150;  // ms
+var CELL_BROADCAST = 500;  // ms
 
 class CellProperties {
   constructor(public reproduce:number=5, public apostosis:number=10) {
@@ -91,6 +91,7 @@ class CellProperties {
 
 class Cell implements HasElem, InGrid {
   $elem:JQuery;
+  $props:JQuery;
   grid:CellGrid;
   row:number;
   col:number;
@@ -102,10 +103,16 @@ class Cell implements HasElem, InGrid {
 
   constructor(public kind:string) {
     this.$elem = $('<div class="cell"></div>').addClass(kind);
+    this.$props = $('<div class="props"></div>').appendTo(this.$elem);
     this.row = this.col = 0;
     this.broadcastT = renewableTimeout($.proxy(this, 'broadcast'), CELL_BROADCAST);
     this.deathT = renewableTimeout($.proxy(this, 'die'), CELL_BROADCAST);
     this.props = new CellProperties(Random.int(3, 8), Random.int(6, 15));
+    Object.keys(this.props).forEach((prop) => {
+      var $prop = $('<div></div>').addClass('prop ' + prop);
+      $prop.width(this.props[prop]).height(this.props[prop]);
+      $prop.appendTo(this.$props);
+    });
   }
   /** Only call this once for now, there's no cleanup. */
   addToGrid(grid:CellGrid, row:number, col:number) {
@@ -141,7 +148,7 @@ class Cell implements HasElem, InGrid {
     // TODO: Make the selection more advanced.
     suitors.sort((c1, c2) => c1.props.reproduce - c2.props.reproduce);
     var cloner = suitors[0];
-    this.become(cloner.kind);
+    setTimeout(() => this.become(cloner.kind), 150);
   }
   request(other:Cell) {
     if (this.kind === 'empty') return;

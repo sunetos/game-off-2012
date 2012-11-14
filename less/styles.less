@@ -75,9 +75,10 @@ a, a:focus, a:hover {
 
 .cell {
   .box-sizing(border-box);
-  .circle(20px);
+  .rounded(10px);
   border: 2px solid #999;
   background-color: #ccc;
+  position: relative;
 
   &:hover {
     border: 2px solid #9f9;
@@ -94,8 +95,35 @@ a, a:focus, a:hover {
   &.liver { background-color: #ccf; }
   &.muscle { background-color: #ccc; }
 
+  .transition(~"opacity 0.5s ease-in");
+  .opacity(1.0);
+
+  .props {
+    position: absolute;
+    width: 20px;
+    right: 0;
+    top: 0;
+
+    .prop {
+      .opacity(0.8);
+      .rounded(50%);
+      margin: 2px auto;
+      &:after {
+        display: block;
+        position: relative;
+        content: '';
+        width: 1px;
+        height: 20px;
+      }
+
+      &.reproduce { background-color: #009900; }
+      &.apostosis { background-color: #990000; }
+    }
+  }
+
   &.empty {
     .opacity(0.35);
+    .props { display: none; }
   }
 }
 

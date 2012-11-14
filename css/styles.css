@@ -850,16 +850,27 @@ to {
   -webkit-box-sizing: border-box;
   -moz-box-sizing: border-box;
   box-sizing: border-box;
-  width: 20px;
-  height: 20px;
-  -webkit-border-radius: 20px;
-  -moz-border-radius: 20px;
-  border-radius: 20px;
+  -webkit-border-radius: 10px;
+  -moz-border-radius: 10px;
+  border-radius: 10px;
   -moz-background-clip: padding;
   -webkit-background-clip: padding-box;
   background-clip: padding-box;
   border: 2px solid #999;
   background-color: #ccc;
+  position: relative;
+  -webkit-transition: all opacity 0.5s ease-in ease-out;
+  -moz-transition: all opacity 0.5s ease-in ease-out;
+  transition: all opacity 0.5s ease-in ease-out;
+  -webkit-transition: opacity 0.5s ease-in;
+  -moz-transition: opacity 0.5s ease-in;
+  -o-transition: opacity 0.5s ease-in;
+  -ms-transition: opacity 0.5s ease-in;
+  transition: opacity 0.5s ease-in;
+  -khtml-opacity: 1;
+  -webkit-opacity: 1;
+  -moz-opacity: 1;
+  opacity: 1;
 }
 .cell:hover {
   border: 2px solid #9f9;
@@ -882,11 +893,46 @@ to {
 .cell.muscle {
   background-color: #ccc;
 }
+.cell .props {
+  position: absolute;
+  width: 20px;
+  right: 0;
+  top: 0;
+}
+.cell .props .prop {
+  -khtml-opacity: 0.8;
+  -webkit-opacity: 0.8;
+  -moz-opacity: 0.8;
+  opacity: 0.8;
+  -webkit-border-radius: 50%;
+  -moz-border-radius: 50%;
+  border-radius: 50%;
+  -moz-background-clip: padding;
+  -webkit-background-clip: padding-box;
+  background-clip: padding-box;
+  margin: 2px auto;
+}
+.cell .props .prop:after {
+  display: block;
+  position: relative;
+  content: '';
+  width: 1px;
+  height: 20px;
+}
+.cell .props .prop.reproduce {
+  background-color: #009900;
+}
+.cell .props .prop.apostosis {
+  background-color: #990000;
+}
 .cell.empty {
   -khtml-opacity: 0.35;
   -webkit-opacity: 0.35;
   -moz-opacity: 0.35;
   opacity: 0.35;
+}
+.cell.empty .props {
+  display: none;
 }
 .map {
   width: 100px;

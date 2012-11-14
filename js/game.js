@@ -102,7 +102,7 @@ var CELL_REGIONS = {
         'muscle'
     ]
 };
-var CELL_BROADCAST = 150;
+var CELL_BROADCAST = 500;
 var CellProperties = (function () {
     function CellProperties(reproduce, apostosis) {
         if (typeof reproduce === "undefined") { reproduce = 5; }
@@ -115,11 +115,18 @@ var CellProperties = (function () {
 var Cell = (function () {
     function Cell(kind) {
         this.kind = kind;
+        var _this = this;
         this.$elem = $('<div class="cell"></div>').addClass(kind);
+        this.$props = $('<div class="props"></div>').appendTo(this.$elem);
         this.row = this.col = 0;
         this.broadcastT = renewableTimeout($.proxy(this, 'broadcast'), CELL_BROADCAST);
         this.deathT = renewableTimeout($.proxy(this, 'die'), CELL_BROADCAST);
         this.props = new CellProperties(Random.int(3, 8), Random.int(6, 15));
+        Object.keys(this.props).forEach(function (prop) {
+            var $prop = $('<div></div>').addClass('prop ' + prop);
+            $prop.width(_this.props[prop]).height(_this.props[prop]);
+            $prop.appendTo(_this.$props);
+        });
     }
     Cell.prototype.addToGrid = function (grid, row, col) {
         var _this = this;
@@ -153,6 +160,7 @@ var Cell = (function () {
         }
     };
     Cell.prototype.broadcast = function () {
+        var _this = this;
         if(this.kind !== 'empty') {
             return;
         }
@@ -169,13 +177,14 @@ var Cell = (function () {
             return c1.props.reproduce - c2.props.reproduce;
         });
         var cloner = suitors[0];
-        this.become(cloner.kind);
+        setTimeout(function () {
+            return _this.become(cloner.kind);
+        }, 150);
     };
     Cell.prototype.request = function (other) {
         if(this.kind === 'empty') {
             return;
         }
-        console.log('responding to request');
         other.respond(this);
     };
     Cell.prototype.die = function (reason, broadcast) {
