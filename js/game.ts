@@ -113,9 +113,6 @@ class Cell implements HasElem, InGrid {
       $prop.width(this.props[prop]).height(this.props[prop]);
       $prop.appendTo(this.$props);
     });
-    var deathTime = this.props.apostosis*1000;
-    this.deathT = new TWEEN.Tween(this.props).to({apostosis: 0}, deathTime);
-    this.deathT.onComplete($.proxy(this, 'die')).start();
   }
   /** Only call this once for now, there's no cleanup. */
   addToGrid(grid:CellGrid, row:number, col:number) {
@@ -134,6 +131,10 @@ class Cell implements HasElem, InGrid {
   }
   birth() {
     Msg.pub('cell:birth', this);
+    var deathTime = this.props.apostosis*1000;
+    this.deathT = new TWEEN.Tween({life: this.props.apostosis})
+    this.deathT.to({life: 0}, deathTime).onComplete($.proxy(this, 'die'));
+    this.deathT.start();
     if (this.kind === 'empty') this.broadcastT.set();
   }
   broadcast() {
@@ -159,6 +160,7 @@ class Cell implements HasElem, InGrid {
   }
   die(reason:string, broadcast:bool=true) {
     Msg.pub('cell:death', self, reason);
+    this.kind = 'empty';
     this.$elem.removeClass(CELL_KINDS).addClass('empty');
     if (broadcast) {
       this.broadcastT.set();

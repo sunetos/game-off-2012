@@ -126,11 +126,6 @@ var Cell = (function () {
             $prop.width(_this.props[prop]).height(_this.props[prop]);
             $prop.appendTo(_this.$props);
         });
-        var deathTime = this.props.apostosis * 1000;
-        this.deathT = new TWEEN.Tween(this.props).to({
-            apostosis: 0
-        }, deathTime);
-        this.deathT.onComplete($.proxy(this, 'die')).start();
     }
     Cell.prototype.addToGrid = function (grid, row, col) {
         var _this = this;
@@ -159,6 +154,14 @@ var Cell = (function () {
     };
     Cell.prototype.birth = function () {
         Msg.pub('cell:birth', this);
+        var deathTime = this.props.apostosis * 1000;
+        this.deathT = new TWEEN.Tween({
+            life: this.props.apostosis
+        });
+        this.deathT.to({
+            life: 0
+        }, deathTime).onComplete($.proxy(this, 'die'));
+        this.deathT.start();
         if(this.kind === 'empty') {
             this.broadcastT.set();
         }
@@ -194,6 +197,7 @@ var Cell = (function () {
     Cell.prototype.die = function (reason, broadcast) {
         if (typeof broadcast === "undefined") { broadcast = true; }
         Msg.pub('cell:death', self, reason);
+        this.kind = 'empty';
         this.$elem.removeClass(CELL_KINDS).addClass('empty');
         if(broadcast) {
             this.broadcastT.set();
