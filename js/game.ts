@@ -1,4 +1,4 @@
-/// <reference path="libs/jquery.ts" />
+/// <reference path="libs/jquery.bbq.ts" />
 /// <reference path="libs/tween.d.ts" />
 
 // Simple pubsub based on https://gist.github.com/1319216
@@ -151,16 +151,23 @@ class Cell implements HasElem, InGrid {
     }
     // TODO: Make the selection more advanced.
     suitors.sort((c1, c2) => c1.props.reproduce - c2.props.reproduce);
-    var cloner = suitors[0], $cloner = cloner.$elem;
-    //setTimeout(() => this.become(cloner.kind), 150);
-    var pos = this.$elem.position(), cpos = $cloner.position();
-    var $clone = $cloner.clone().css({
-        position: 'absolute', left: cpos.left, top: cpos.top
-    }).appendTo($cloner.parent());
-    $clone.animate({left: pos.left, top: pos.top}, 300, 'swing', () => {
-      $clone.remove();
-      this.become(cloner.kind, cloner.props);
-    });
+    var cloner = suitors[0];
+    this.cloneFrom(cloner);
+  }
+  cloneFrom(cloner:Cell) {
+    if ($.bbq.getState('region') === this.grid.name) {
+      var $cloner = cloner.$elem;
+      var pos = this.$elem.position(), cpos = $cloner.position();
+      var $clone = $cloner.clone().css({
+          position: 'absolute', left: cpos.left, top: cpos.top
+      }).appendTo($cloner.parent());
+      $clone.animate({left: pos.left, top: pos.top}, 300, 'swing', () => {
+        $clone.remove();
+        this.become(cloner.kind, cloner.props);
+      });
+    } else {
+      setTimeout(() => this.become(cloner.kind, cloner.props), 150);
+    }
   }
   request(other:Cell) {
     if (this.kind === 'empty') return;

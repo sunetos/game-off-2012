@@ -167,7 +167,6 @@ var Cell = (function () {
         }
     };
     Cell.prototype.broadcast = function () {
-        var _this = this;
         if(this.kind !== 'empty') {
             return;
         }
@@ -184,23 +183,32 @@ var Cell = (function () {
             return c1.props.reproduce - c2.props.reproduce;
         });
         var cloner = suitors[0];
-        var $cloner = cloner.$elem;
+        this.cloneFrom(cloner);
+    };
+    Cell.prototype.cloneFrom = function (cloner) {
+        var _this = this;
+        if($.bbq.getState('region') === this.grid.name) {
+            var $cloner = cloner.$elem;
+            var pos = this.$elem.position();
+            var cpos = $cloner.position();
 
-        var pos = this.$elem.position();
-        var cpos = $cloner.position();
-
-        var $clone = $cloner.clone().css({
-            position: 'absolute',
-            left: cpos.left,
-            top: cpos.top
-        }).appendTo($cloner.parent());
-        $clone.animate({
-            left: pos.left,
-            top: pos.top
-        }, 300, 'swing', function () {
-            $clone.remove();
-            _this.become(cloner.kind, cloner.props);
-        });
+            var $clone = $cloner.clone().css({
+                position: 'absolute',
+                left: cpos.left,
+                top: cpos.top
+            }).appendTo($cloner.parent());
+            $clone.animate({
+                left: pos.left,
+                top: pos.top
+            }, 300, 'swing', function () {
+                $clone.remove();
+                _this.become(cloner.kind, cloner.props);
+            });
+        } else {
+            setTimeout(function () {
+                return _this.become(cloner.kind, cloner.props);
+            }, 150);
+        }
     };
     Cell.prototype.request = function (other) {
         if(this.kind === 'empty') {
