@@ -108,10 +108,15 @@ class Cell implements HasElem, InGrid {
     this.row = this.col = 0;
     this.broadcastT = renewableTimeout($.proxy(this, 'broadcast'), CELL_BROADCAST);
     this.props = new CellProperties(Random.int(3, 8), Random.int(10, 20));
+    this.setPropElems();
+  }
+  setPropElems() {
     Object.keys(this.props).forEach((prop) => {
-      var $prop = $('<div></div>').addClass('prop ' + prop);
+      var $prop = this.$elem.find('.prop.' + prop);
+      if (!$prop.length) {
+        $prop = $('<div></div>').addClass('prop ' + prop).appendTo(this.$props);
+      }
       $prop.height(this.props[prop]);
-      $prop.appendTo(this.$props);
     });
   }
   /** Only call this once for now, there's no cleanup. */
@@ -156,17 +161,28 @@ class Cell implements HasElem, InGrid {
   }
   cloneFrom(cloner:Cell) {
     if ($.bbq.getState('region') === this.grid.name) {
-      var $cloner = cloner.$elem;
+      var $cloner = cloner.$elem, clonerElem = $cloner.get(0);
       var pos = this.$elem.position(), cpos = $cloner.position();
       var $clone = $cloner.clone().css({
           position: 'absolute', left: cpos.left, top: cpos.top
       }).appendTo($cloner.parent());
-      $clone.animate({left: pos.left, top: pos.top}, 300, 'swing', () => {
+      $clone.animate({left: pos.left, top: pos.top}, 200, 'swing', () => {
         $clone.remove();
         this.become(cloner.kind, cloner.props);
       });
+      /*
+      var tween = new TWEEN.Tween({left: cpos.left, top: cpos.top}).to({
+          left: pos.left, top: pos.top,
+      }, 200).onUpdate(function(val) {
+        clonerElem.style.left = this.left + 'px';
+        clonerElem.style.top = this.top + 'px';
+      }).onComplete(() => {
+        $clone.remove();
+        this.become(cloner.kind, cloner.props);
+      }).start();
+      */
     } else {
-      setTimeout(() => this.become(cloner.kind, cloner.props), 150);
+      setTimeout(() => this.become(cloner.kind, cloner.props), 200);
     }
   }
   request(other:Cell) {
@@ -183,7 +199,10 @@ class Cell implements HasElem, InGrid {
   }
   become(kind:string, props?:CellProperties) {
     this.kind = kind;
-    if (props) this.props = props;
+    if (props) {
+      this.props = props;
+      this.setPropElems();
+    }
     this.$elem.removeClass('empty').addClass(kind);
     this.birth();
   }

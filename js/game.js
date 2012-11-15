@@ -115,18 +115,23 @@ var CellProperties = (function () {
 var Cell = (function () {
     function Cell(kind) {
         this.kind = kind;
-        var _this = this;
         this.$elem = $('<div class="cell"></div>').addClass(kind);
         this.$props = $('<div class="props"></div>').appendTo(this.$elem);
         this.row = this.col = 0;
         this.broadcastT = renewableTimeout($.proxy(this, 'broadcast'), CELL_BROADCAST);
         this.props = new CellProperties(Random.int(3, 8), Random.int(10, 20));
-        Object.keys(this.props).forEach(function (prop) {
-            var $prop = $('<div></div>').addClass('prop ' + prop);
-            $prop.height(_this.props[prop]);
-            $prop.appendTo(_this.$props);
-        });
+        this.setPropElems();
     }
+    Cell.prototype.setPropElems = function () {
+        var _this = this;
+        Object.keys(this.props).forEach(function (prop) {
+            var $prop = _this.$elem.find('.prop.' + prop);
+            if(!$prop.length) {
+                $prop = $('<div></div>').addClass('prop ' + prop).appendTo(_this.$props);
+            }
+            $prop.height(_this.props[prop]);
+        });
+    };
     Cell.prototype.addToGrid = function (grid, row, col) {
         var _this = this;
         this.grid = grid;
@@ -189,6 +194,8 @@ var Cell = (function () {
         var _this = this;
         if($.bbq.getState('region') === this.grid.name) {
             var $cloner = cloner.$elem;
+            var clonerElem = $cloner.get(0);
+
             var pos = this.$elem.position();
             var cpos = $cloner.position();
 
@@ -200,14 +207,14 @@ var Cell = (function () {
             $clone.animate({
                 left: pos.left,
                 top: pos.top
-            }, 300, 'swing', function () {
+            }, 200, 'swing', function () {
                 $clone.remove();
                 _this.become(cloner.kind, cloner.props);
             });
         } else {
             setTimeout(function () {
                 return _this.become(cloner.kind, cloner.props);
-            }, 150);
+            }, 200);
         }
     };
     Cell.prototype.request = function (other) {
@@ -229,6 +236,7 @@ var Cell = (function () {
         this.kind = kind;
         if(props) {
             this.props = props;
+            this.setPropElems();
         }
         this.$elem.removeClass('empty').addClass(kind);
         this.birth();
