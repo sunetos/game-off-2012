@@ -1,3 +1,4 @@
+/// <reference path="defs/jquery-1.8.d.ts" />
 /// <reference path="libs/jquery.bbq.ts" />
 /// <reference path="libs/tween.d.ts" />
 
