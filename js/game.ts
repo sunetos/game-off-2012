@@ -1,6 +1,6 @@
-/// <reference path="defs/jquery-1.8.d.ts" />
-/// <reference path="libs/jquery.bbq.ts" />
-/// <reference path="libs/tween.d.ts" />
+/// <reference path="libs/defs/jquery-1.8.d.ts" />
+/// <reference path="libs/defs/jquery.bbq-1.2.1.d.ts" />
+/// <reference path="libs/defs/tween.js-r7.d.ts" />
 
 // Simple pubsub based on https://gist.github.com/1319216
 module Msg {
