@@ -37,7 +37,6 @@ var Msg;
     Msg.pub = pub;
     ; ;
 })(Msg || (Msg = {}));
-
 var Random;
 (function (Random) {
     function int(min, max) {
@@ -49,11 +48,8 @@ var Random;
     }
     Random.choice = choice;
 })(Random || (Random = {}));
-
 function renewableTimeout(func, delay) {
-    var callT = null;
-    var callI = delay;
-
+    var callT = null, callI = delay;
     function callClear() {
         if(callT) {
             clearTimeout(callT);
@@ -193,12 +189,8 @@ var Cell = (function () {
     Cell.prototype.cloneFrom = function (cloner) {
         var _this = this;
         if($.bbq.getState('region') === this.grid.name) {
-            var $cloner = cloner.$elem;
-            var clonerElem = $cloner.get(0);
-
-            var pos = this.$elem.position();
-            var cpos = $cloner.position();
-
+            var $cloner = cloner.$elem, clonerElem = $cloner.get(0);
+            var pos = this.$elem.position(), cpos = $cloner.position();
             var $clone = $cloner.clone().css({
                 position: 'absolute',
                 left: cpos.left,

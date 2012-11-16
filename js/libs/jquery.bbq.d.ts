@@ -1,7 +1,7 @@
 // Typing for the jQuery BBQ library
 // Note that this required commenting out JQueryStatic.param in jquery.d.ts.
 
-/// <reference path="jquery.d.ts" />
+/// <reference path="defs/jquery-1.8.d.ts" />
 
 interface JQueryBBQ {
   pushState(params?: any, merge_mode?: number): void;
