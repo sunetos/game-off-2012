@@ -170,11 +170,19 @@ var CellProperties = (function () {
 var CELL_DEFS = {
     'brain': {
     },
+    'colon': {
+    },
+    'eye': {
+    },
     'lung': {
+    },
+    'heart': {
     },
     'liver': {
     },
     'muscle': {
+    },
+    'skin': {
     }
 };
 var CELL_KINDS = Object.keys(CELL_DEFS);
@@ -278,7 +286,7 @@ var Cell = (function () {
     };
     Cell.prototype.cloneFrom = function (cloner) {
         var _this = this;
-        if($.bbq.getState('region') === this.grid.name) {
+        if(this.grid.isVisible()) {
             var $cloner = cloner.$elem, clonerElem = $cloner.get(0);
             var pos = this.$elem.position(), cpos = $cloner.position();
             var $clone = $cloner.clone().css({
@@ -326,7 +334,9 @@ var Cell = (function () {
     return Cell;
 })();
 var CellGrid = (function () {
-    function CellGrid(name, elem, cfg) {
+    function CellGrid(region, index, name, elem, cfg) {
+        this.region = region;
+        this.index = index;
         this.name = name;
         this.cells = [];
         this.rows = 1;
@@ -335,7 +345,7 @@ var CellGrid = (function () {
         this.rows = Math.max(1, cfg.rows);
         this.cols = Math.max(1, cfg.cols);
         this.fill();
-        var seedKind = CELL_REGIONS[name][0];
+        var seedKind = CELL_REGIONS[region.name][index];
         this.seed(seedKind);
     }
     CellGrid.prototype.clear = function () {
@@ -361,17 +371,37 @@ var CellGrid = (function () {
         cell.die('seeding');
         cell.become(kind);
     };
+    CellGrid.prototype.isVisible = function () {
+        return this.region.isVisible();
+    };
     return CellGrid;
 })();
-var Body = (function () {
-    function Body(elem, cfg) {
+var BodyRegion = (function () {
+    function BodyRegion(name, elem, cfg) {
+        this.name = name;
         var _this = this;
         this.grids = {
         };
         this.$elem = $(elem);
-        this.$elem.find('section').each(function (i, v) {
-            var grid = new CellGrid($(v).data('name'), $(v).find('.cells'), cfg);
+        this.$elem.find('.grid').each(function (i, v) {
+            var grid = new CellGrid(_this, i, $(v).data('name'), $(v).find('.cells'), cfg);
             _this.grids[grid.name] = grid;
+        });
+    }
+    BodyRegion.prototype.isVisible = function () {
+        return ($.bbq.getState('region') === this.name);
+    };
+    return BodyRegion;
+})();
+var Body = (function () {
+    function Body(elem, cfg) {
+        var _this = this;
+        this.regions = {
+        };
+        this.$elem = $(elem);
+        this.$elem.find('section').each(function (i, v) {
+            var region = new BodyRegion($(v).data('name'), v, cfg);
+            _this.regions[region.name] = region;
         });
     }
     return Body;

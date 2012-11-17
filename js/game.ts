@@ -149,9 +149,13 @@ class CellProperties {
 
 var CELL_DEFS = {
     'brain': {},
+    'colon': {},
+    'eye': {},
     'lung': {},
+    'heart': {},
     'liver': {},
     'muscle': {},
+    'skin': {},
 };
 var CELL_KINDS = Object.keys(CELL_DEFS);
 var CELL_REGIONS = {
@@ -234,7 +238,7 @@ class Cell implements HasElem, InGrid {
     this.cloneFrom(cloner);
   }
   cloneFrom(cloner:Cell) {
-    if ($.bbq.getState('region') === this.grid.name) {
+    if (this.grid.isVisible()) {
       var $cloner = cloner.$elem, clonerElem = $cloner.get(0);
       var pos = this.$elem.position(), cpos = $cloner.position();
       var $clone = $cloner.clone().css({
@@ -276,13 +280,14 @@ class CellGrid implements HasElem {
   public cells:Cell[] = [];
   rows = 1;
   cols = 1;
-  constructor(public name:string, elem:any, cfg) {
+  constructor(public region:BodyRegion, public index:number, public name:string,
+              elem:any, cfg:any) {
     this.$elem = $(elem);
     this.rows = Math.max(1, cfg.rows);
     this.cols = Math.max(1, cfg.cols);
     this.fill();
-    // TODO: Maybe randomize or something.
-    var seedKind = CELL_REGIONS[name][0];
+
+    var seedKind = CELL_REGIONS[region.name][index];
     this.seed(seedKind);
   }
   clear() {
@@ -306,16 +311,34 @@ class CellGrid implements HasElem {
     cell.die('seeding');
     cell.become(kind);
   }
+  isVisible():bool {
+    return this.region.isVisible();
+  }
+}
+
+class BodyRegion implements HasElem {
+  $elem: JQuery;
+  public grids:any = {};
+  constructor(public name:string, elem:any, cfg:any) {
+    this.$elem = $(elem);
+    this.$elem.find('.grid').each((i, v) => {
+      var grid = new CellGrid(this, i, $(v).data('name'), $(v).find('.cells'), cfg);
+      this.grids[grid.name] = grid;
+    });
+  }
+  isVisible():bool {
+    return ($.bbq.getState('region') === this.name);
+  }
 }
 
 class Body implements HasElem {
   $elem: JQuery;
-  grids = {};
+  public regions:any = {};
   constructor(elem:any, cfg:any) {
     this.$elem = $(elem);
     this.$elem.find('section').each((i, v) => {
-      var grid = new CellGrid($(v).data('name'), $(v).find('.cells'), cfg);
-      this.grids[grid.name] = grid;
+      var region = new BodyRegion($(v).data('name'), v, cfg);
+      this.regions[region.name] = region;
     });
   }
 }

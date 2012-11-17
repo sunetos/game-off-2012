@@ -1099,7 +1099,7 @@ to {
   color: #dddddd;
   text-align: center;
 }
-.game section .grid {
+.game section .grids {
   -webkit-box-sizing: border-box;
   -moz-box-sizing: border-box;
   box-sizing: border-box;
@@ -1109,11 +1109,26 @@ to {
   left: 20px;
   width: auto;
   height: auto;
-  top: 100px;
+  top: 60px;
   left: 50px;
   right: 20px;
 }
-.game section .grid .cells {
+.game section .grids .grid {
+  position: absolute;
+  width: 47%;
+  height: 100%;
+}
+.game section .grids .grid:last-child {
+  left: 53%;
+}
+.game section .grids .grid h3 {
+  margin: 0;
+  height: 40px;
+  line-height: 40px;
+  text-align: center;
+  color: #dddddd;
+}
+.game section .grids .cells {
   -webkit-box-sizing: border-box;
   -moz-box-sizing: border-box;
   box-sizing: border-box;
@@ -1124,4 +1139,5 @@ to {
   left: 0;
   width: auto;
   height: auto;
+  top: 40px;
 }

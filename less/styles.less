@@ -226,13 +226,30 @@ a, a:focus, a:hover {
       text-align: center;
     }
 
-    .grid {
+    .grids {
       .stretch-pad(20px);
-      top: 100px;
+      top: 60px;
       left: 50px;
       right: 20px;
+
+      .grid {
+        position: absolute;
+        width: 47%;
+        height: 100%;
+        &:last-child {
+          left: 53%;
+        }
+        h3 {
+          margin: 0;
+          height: 40px;
+          line-height: 40px;
+          text-align: center;
+          color: @text;
+        }
+      }
       .cells {
         .stretch-abs;
+        top: 40px;
       }
     }
   }
