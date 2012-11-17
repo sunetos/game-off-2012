@@ -44,7 +44,7 @@ var Random;
     }
     Random.int = int;
     function choice(items) {
-        return items[int(0, items.length)];
+        return items[int(0, items.length - 1)];
     }
     Random.choice = choice;
 })(Random || (Random = {}));
@@ -73,6 +73,100 @@ function renewableTimeout(func, delay) {
         run: callRun
     };
 }
+var DNA = (function () {
+    function DNA(reproduce, apoptosis, grow, enzyme1, enzyme2, misc1, misc2) {
+        if (typeof reproduce === "undefined") { reproduce = 1; }
+        if (typeof apoptosis === "undefined") { apoptosis = 1; }
+        if (typeof grow === "undefined") { grow = 1; }
+        if (typeof enzyme1 === "undefined") { enzyme1 = 1; }
+        if (typeof enzyme2 === "undefined") { enzyme2 = 1; }
+        if (typeof misc1 === "undefined") { misc1 = 1; }
+        if (typeof misc2 === "undefined") { misc2 = 1; }
+        this.reproduce = reproduce;
+        this.apoptosis = apoptosis;
+        this.grow = grow;
+        this.enzyme1 = enzyme1;
+        this.enzyme2 = enzyme2;
+        this.misc1 = misc1;
+        this.misc2 = misc2;
+        this.code = '';
+        this.ancestor = null;
+        this.manager = null;
+        this.props = [
+            'reproduce', 
+            'apoptosis', 
+            'grow', 
+            'enzyme1', 
+            'enzyme2', 
+            'misc1', 
+            'misc2'
+        ];
+        this.buildCode();
+    }
+    DNA.prototype.buildCode = function () {
+        var _this = this;
+        this.props.forEach(function (prop) {
+            _this.code += _this[prop].toString(2);
+        });
+    };
+    DNA.prototype.copy = function (mutate) {
+        if (typeof mutate === "undefined") { mutate = true; }
+        var _this = this;
+        var doMutate = Random.int(1, this.manager.mutateResist) === 1;
+        if(!doMutate) {
+            return this;
+        }
+        var copy = new DNA();
+        copy.ancestor = this;
+        copy.manager = this.manager;
+        this.props.forEach(function (prop) {
+            copy[prop] = _this[prop];
+        });
+        var mutateProps = [];
+        var mutateCount = Random.int(1, this.manager.mutateCount);
+        for(var i = 0; i < mutateCount; ++i) {
+            var prop = Random.choice(this.props);
+            while(mutateProps.indexOf(prop) !== -1) {
+                prop = Random.choice(this.props);
+            }
+        }
+        mutateProps.forEach(function (prop) {
+            var amount = Random.int(1, _this.manager.mutateAmount);
+            var dir = (Random.int(0, 1) - 1) | 1;
+            copy[prop] = (copy[prop] + amount * dir) % 32;
+        });
+        copy.buildCode();
+        return copy;
+    };
+    return DNA;
+})();
+var DNAManager = (function () {
+    function DNAManager(root) {
+        this.root = null;
+        this.mutateResist = 20;
+        this.mutateCount = 1;
+        this.mutateAmount = 2;
+        this.root = root || new DNA(Random.int(8, 12), Random.int(8, 12), Random.int(8, 12), Random.int(8, 12), Random.int(8, 12), Random.int(8, 12), Random.int(8, 12));
+        this.root.manager = this;
+    }
+    return DNAManager;
+})();
+var CellProperties = (function () {
+    function CellProperties(dna, reproduce, apoptosis, grow, enzyme1, enzyme2) {
+        if (typeof reproduce === "undefined") { reproduce = 5; }
+        if (typeof apoptosis === "undefined") { apoptosis = 16; }
+        if (typeof grow === "undefined") { grow = 10; }
+        if (typeof enzyme1 === "undefined") { enzyme1 = 16; }
+        if (typeof enzyme2 === "undefined") { enzyme2 = 16; }
+        this.dna = dna;
+        this.reproduce = reproduce;
+        this.apoptosis = apoptosis;
+        this.grow = grow;
+        this.enzyme1 = enzyme1;
+        this.enzyme2 = enzyme2;
+    }
+    return CellProperties;
+})();
 var CELL_DEFS = {
     'brain': {
     },
@@ -86,28 +180,23 @@ var CELL_DEFS = {
 var CELL_KINDS = Object.keys(CELL_DEFS);
 var CELL_REGIONS = {
     'head': [
-        'brain'
+        'brain', 
+        'eye'
     ],
     'torso': [
-        'lung'
+        'lung', 
+        'heart'
     ],
     'midsection': [
-        'liver'
+        'liver', 
+        'colon'
     ],
     'legs': [
-        'muscle'
+        'muscle', 
+        'skin'
     ]
 };
 var CELL_BROADCAST = 500;
-var CellProperties = (function () {
-    function CellProperties(reproduce, apostosis) {
-        if (typeof reproduce === "undefined") { reproduce = 5; }
-        if (typeof apostosis === "undefined") { apostosis = 10; }
-        this.reproduce = reproduce;
-        this.apostosis = apostosis;
-    }
-    return CellProperties;
-})();
 var Cell = (function () {
     function Cell(kind) {
         this.kind = kind;
@@ -115,7 +204,8 @@ var Cell = (function () {
         this.$props = $('<div class="props"></div>').appendTo(this.$elem);
         this.row = this.col = 0;
         this.broadcastT = renewableTimeout($.proxy(this, 'broadcast'), CELL_BROADCAST);
-        this.props = new CellProperties(Random.int(3, 8), Random.int(10, 20));
+        var dna = new DNA();
+        this.props = new CellProperties(dna, Random.int(3, 8), Random.int(10, 20));
         this.setPropElems();
     }
     Cell.prototype.setPropElems = function () {
@@ -155,9 +245,9 @@ var Cell = (function () {
     };
     Cell.prototype.birth = function () {
         Msg.pub('cell:birth', this);
-        var deathTime = this.props.apostosis * 1000;
+        var deathTime = this.props.apoptosis * 1000;
         this.deathT = new TWEEN.Tween({
-            life: this.props.apostosis
+            life: this.props.apoptosis
         });
         this.deathT.to({
             life: 0
@@ -290,6 +380,7 @@ var Game = (function () {
     function Game(elem, cfg) {
         this.$elem = $(elem);
         this.body = new Body(this.$elem.find('.body'), cfg);
+        this.dnaMgr = new DNAManager();
         Msg.pub('game:init', this);
     }
     return Game;

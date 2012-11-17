@@ -32,7 +32,7 @@ module Random {
     return ((Math.random()*(max - min + 1)) + min) | 0;
   }
   export function choice(items:any[]) {
-    return items[int(0, items.length)];
+    return items[int(0, items.length - 1)];
   }
 }
 
@@ -70,6 +70,83 @@ interface InGrid {
   addToGrid(grid:any, row:number, col:number);
 }
 
+class DNA {
+  // The base properties that all cells share, binary from 1 to 32.
+  public code: string = '';
+  public ancestor: DNA = null;
+  public manager: DNAManager = null;
+  public props:string[] = ['reproduce', 'apoptosis', 'grow', 'enzyme1',
+                           'enzyme2', 'misc1', 'misc2'];
+
+  constructor(public reproduce:number=1, public apoptosis:number=1,
+              public grow:number=1, public enzyme1:number=1,
+              public enzyme2:number=1, public misc1:number=1,
+              public misc2:number=1) {
+    this.buildCode();
+  }
+
+  buildCode() {
+    // The property order matters.
+    this.props.forEach((prop:string) => {
+      this.code += this[prop].toString(2);
+    });
+  }
+
+  copy(mutate?:bool=true) {
+    var doMutate:bool = Random.int(1, this.manager.mutateResist) === 1;
+    if (!doMutate) return this;
+
+    var copy:DNA = new DNA();
+    copy.ancestor = this;
+    copy.manager = this.manager;
+    this.props.forEach((prop:string) => {
+      copy[prop] = this[prop];
+    });
+
+    var mutateProps:string[] = [];
+    var mutateCount:number = Random.int(1, this.manager.mutateCount);
+    for (var i = 0; i < mutateCount; ++i) {
+      var prop:string = Random.choice(this.props);
+      while (mutateProps.indexOf(prop) !== -1) prop = Random.choice(this.props);
+    }
+
+    // TODO: Figure out how to handle zeroes.
+    mutateProps.forEach((prop:string) => {
+      var amount:number = Random.int(1, this.manager.mutateAmount);
+      var dir:number = (Random.int(0, 1) - 1) | 1;
+      copy[prop] = (copy[prop] + amount*dir) % 32;
+    });
+
+    copy.buildCode();
+    return copy;
+  }
+}
+
+class DNAManager {
+  // Control properties of all DNA over time.
+  public root: DNA = null;
+  // Mutation resistance goes down over time, and count goes up.
+  public mutateResist: number = 20;
+  public mutateCount: number = 1;
+  public mutateAmount: number = 2;
+
+  constructor(root?:DNA) {
+    this.root = root || new DNA(
+        Random.int(8, 12), Random.int(8, 12), Random.int(8, 12),
+        Random.int(8, 12), Random.int(8, 12), Random.int(8, 12),
+        Random.int(8, 12));
+    this.root.manager = this;
+  }
+}
+
+class CellProperties {
+  // The properties are scale factors against the dna.
+  constructor(public dna:DNA, public reproduce:number=5,
+              public apoptosis:number=16, public grow:number=10,
+              public enzyme1:number=16, public enzyme2:number=16) {
+  }
+}
+
 var CELL_DEFS = {
     'brain': {},
     'lung': {},
@@ -78,17 +155,12 @@ var CELL_DEFS = {
 };
 var CELL_KINDS = Object.keys(CELL_DEFS);
 var CELL_REGIONS = {
-    'head': ['brain'],
-    'torso': ['lung'],
-    'midsection': ['liver'],
-    'legs': ['muscle'],
+    'head': ['brain', 'eye'],
+    'torso': ['lung', 'heart'],
+    'midsection': ['liver', 'colon'],
+    'legs': ['muscle', 'skin'],
 };
 var CELL_BROADCAST = 500;  // ms
-
-class CellProperties {
-  constructor(public reproduce:number=5, public apostosis:number=10) {
-  }
-}
 
 
 class Cell implements HasElem, InGrid {
@@ -108,7 +180,8 @@ class Cell implements HasElem, InGrid {
     this.$props = $('<div class="props"></div>').appendTo(this.$elem);
     this.row = this.col = 0;
     this.broadcastT = renewableTimeout($.proxy(this, 'broadcast'), CELL_BROADCAST);
-    this.props = new CellProperties(Random.int(3, 8), Random.int(10, 20));
+    var dna:DNA = new DNA();
+    this.props = new CellProperties(dna, Random.int(3, 8), Random.int(10, 20));
     this.setPropElems();
   }
   setPropElems() {
@@ -137,8 +210,8 @@ class Cell implements HasElem, InGrid {
   }
   birth() {
     Msg.pub('cell:birth', this);
-    var deathTime = this.props.apostosis*1000;
-    this.deathT = new TWEEN.Tween({life: this.props.apostosis})
+    var deathTime = this.props.apoptosis*1000;
+    this.deathT = new TWEEN.Tween({life: this.props.apoptosis})
     this.deathT.to({life: 0}, deathTime).onComplete($.proxy(this, 'die'));
     this.deathT.start();
     if (this.kind === 'empty') this.broadcastT.set();
@@ -171,17 +244,6 @@ class Cell implements HasElem, InGrid {
         $clone.remove();
         this.become(cloner.kind, cloner.props);
       });
-      /*
-      var tween = new TWEEN.Tween({left: cpos.left, top: cpos.top}).to({
-          left: pos.left, top: pos.top,
-      }, 200).onUpdate(function(val) {
-        clonerElem.style.left = this.left + 'px';
-        clonerElem.style.top = this.top + 'px';
-      }).onComplete(() => {
-        $clone.remove();
-        this.become(cloner.kind, cloner.props);
-      }).start();
-      */
     } else {
       setTimeout(() => this.become(cloner.kind, cloner.props), 200);
     }
@@ -261,9 +323,11 @@ class Body implements HasElem {
 class Game implements HasElem {
   $elem: JQuery;
   body: Body;
+  dnaMgr: DNAManager;
   constructor(elem:any, cfg:any) {
     this.$elem = $(elem);
     this.body = new Body(this.$elem.find('.body'), cfg);
+    this.dnaMgr = new DNAManager();
     Msg.pub('game:init', this);
   }
 }
