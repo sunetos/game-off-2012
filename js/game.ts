@@ -1,64 +1,8 @@
 /// <reference path="libs/defs/jquery-1.8.d.ts" />
 /// <reference path="libs/defs/jquery.bbq-1.2.1.d.ts" />
 /// <reference path="libs/defs/tween.js-r7.d.ts" />
-
-// Simple pubsub based on https://gist.github.com/1319216
-module Msg {
-  var $elem = $({});
-
-  export function sub(topic:string, cb:Function) {
-    $elem.on(topic, () => {
-      return cb.apply(this, Array.prototype.slice.call(arguments, 1));
-    });
-  };
-
-  export function one(topic:string, cb:Function) {
-    $elem.one(topic, () => {
-      return cb.apply(this, Array.prototype.slice.call(arguments, 1));
-    });
-  };
-
-  export function unsub(...args: any[]) {
-    $elem.off.apply($elem, args);
-  };
-
-  export function pub(...args: any[]) {
-    $elem.trigger.apply($elem, args);
-  };
-}
-
-module Random {
-  export function int(min:number, max:number) {
-    return ((Math.random()*(max - min + 1)) + min) | 0;
-  }
-  export function choice(items:any[]) {
-    return items[int(0, items.length - 1)];
-  }
-}
-
-
-// Automate boilerplate required for things like callbacks after stopping typing
-function renewableTimeout(func, delay) {
-  var callT = null, callI = delay;
-  function callClear() {
-    if (callT) {
-      clearTimeout(callT);
-      callT = null;
-    }
-  }
-  function callSet(overrideI) {
-    callClear();
-    callT = setTimeout(function() {
-      callT = null;
-      func();
-    }, (overrideI !== undefined) ? overrideI : callI);
-  }
-  function callRun() {
-    callClear();
-    func();
-  }
-  return {clear: callClear, set: callSet, run: callRun};
-}
+/// <reference path="tea-cipher.ts" />
+/// <reference path="util.ts" />
 
 interface HasElem {
   $elem: JQuery;
@@ -70,26 +14,30 @@ interface InGrid {
   addToGrid(grid:any, row:number, col:number);
 }
 
+
+/** The base properties that all cells share, binary from 1 to 32. */
 class DNA {
-  // The base properties that all cells share, binary from 1 to 32.
   public code: string = '';
+  public encoded: string = '';
   public ancestor: DNA = null;
   public manager: DNAManager = null;
   public props:string[] = ['reproduce', 'apoptosis', 'grow', 'enzyme1',
-                           'enzyme2', 'misc1', 'misc2'];
+                           'enzyme2', 'misc1'];
 
   constructor(public reproduce:number=1, public apoptosis:number=1,
               public grow:number=1, public enzyme1:number=1,
-              public enzyme2:number=1, public misc1:number=1,
-              public misc2:number=1) {
+              public enzyme2:number=1, public misc1:number=1) {
     this.buildCode();
   }
 
   buildCode() {
-    // The property order matters.
-    this.props.forEach((prop:string) => {
-      this.code += this[prop].toString(2);
+    // The property order matters. Only supports 6 props (30 bits) for now.
+    var val:number = 0;
+    this.props.forEach((prop:string, i:number) => {
+      val |= this[prop] << (i<<2);
     });
+    this.code = TEA.int2bin(val);
+    this.encoded = TEA.encrypt64b(this.code);
   }
 
   copy(mutate?:bool=true) {
@@ -122,8 +70,20 @@ class DNA {
   }
 }
 
+/** Render a DNA string as html. */
+class DNADisplay implements HasElem {
+  $elem: JQuery;
+  constructor(public dna:DNA) {
+    this.$elem = $('<div class="dna"></div>');
+    for (var i = 0; i < dna.code.length; ++i) {
+      var cls = (dna.code[i] | 0) ? 'one' : 'zero';
+      this.$elem.append($('<div></div>').addClass(cls));
+    }
+  }
+}
+
+/** Control properties of all DNA over time. */
 class DNAManager {
-  // Control properties of all DNA over time.
   public root: DNA = null;
   // Mutation resistance goes down over time, and count goes up.
   public mutateResist: number = 20;
@@ -131,16 +91,14 @@ class DNAManager {
   public mutateAmount: number = 2;
 
   constructor(root?:DNA) {
-    this.root = root || new DNA(
-        Random.int(8, 12), Random.int(8, 12), Random.int(8, 12),
-        Random.int(8, 12), Random.int(8, 12), Random.int(8, 12),
-        Random.int(8, 12));
+    // I think the DNA needs to start the same every game for stability.
+    this.root = root || new DNA(10, 10, 10, 10, 10, 10);
     this.root.manager = this;
   }
 }
 
+/** The properties are scale factors against the dna. */
 class CellProperties {
-  // The properties are scale factors against the dna.
   constructor(public dna:DNA, public reproduce:number=5,
               public apoptosis:number=16, public grow:number=10,
               public enzyme1:number=16, public enzyme2:number=16) {
@@ -167,6 +125,7 @@ var CELL_REGIONS = {
 var CELL_BROADCAST = 500;  // ms
 
 
+/** Where most of the magic happens. */
 class Cell implements HasElem, InGrid {
   $elem: JQuery;
   $props: JQuery;
@@ -179,12 +138,11 @@ class Cell implements HasElem, InGrid {
   props: CellProperties;
   respond: Function;  // Set every broadcast
 
-  constructor(public kind:string) {
+  constructor(public dna:DNA, public kind:string) {
     this.$elem = $('<div class="cell"></div>').addClass(kind);
     this.$props = $('<div class="props"></div>').appendTo(this.$elem);
     this.row = this.col = 0;
     this.broadcastT = renewableTimeout($.proxy(this, 'broadcast'), CELL_BROADCAST);
-    var dna:DNA = new DNA();
     this.props = new CellProperties(dna, Random.int(3, 8), Random.int(10, 20));
     this.setPropElems();
   }
@@ -238,7 +196,7 @@ class Cell implements HasElem, InGrid {
     this.cloneFrom(cloner);
   }
   cloneFrom(cloner:Cell) {
-    if (this.grid.isVisible()) {
+    if (this.grid.visible) {
       var $cloner = cloner.$elem, clonerElem = $cloner.get(0);
       var pos = this.$elem.position(), cpos = $cloner.position();
       var $clone = $cloner.clone().css({
@@ -275,6 +233,7 @@ class Cell implements HasElem, InGrid {
   }
 }
 
+/** Each BodyRegion has multiple grids, and each grid many cells. */
 class CellGrid implements HasElem {
   $elem: JQuery;
   public cells:Cell[] = [];
@@ -285,19 +244,17 @@ class CellGrid implements HasElem {
     this.$elem = $(elem);
     this.rows = Math.max(1, cfg.rows);
     this.cols = Math.max(1, cfg.cols);
-    this.fill();
-
     var seedKind = CELL_REGIONS[region.name][index];
-    this.seed(seedKind);
+    this.fill(cfg.rootDna, seedKind);
   }
   clear() {
     this.cells.forEach((cell) => { cell.die('clear'); });
   }
-  fill(kind:string='empty') {
+  fill(dna:DNA, kind:string='empty') {
     this.clear();
     for (var row = 0; row < this.rows; ++row) {
       for (var col = 0; col < this.cols; ++col) {
-        var cell = new Cell(kind);
+        var cell = new Cell(dna, kind);
         cell.addToGrid(this, row, col);
         this.$elem.append(cell.$elem);
         this.cells.push(cell);
@@ -311,11 +268,12 @@ class CellGrid implements HasElem {
     cell.die('seeding');
     cell.become(kind);
   }
-  isVisible():bool {
-    return this.region.isVisible();
+  get visible():bool {
+    return this.region.visible;
   }
 }
 
+/** There are only a few body regions, each containing cell grids. */
 class BodyRegion implements HasElem {
   $elem: JQuery;
   public grids:any = {};
@@ -326,11 +284,12 @@ class BodyRegion implements HasElem {
       this.grids[grid.name] = grid;
     });
   }
-  isVisible():bool {
+  get visible():bool {
     return ($.bbq.getState('region') === this.name);
   }
 }
 
+/** Kind of the root container for the various cell grids. */
 class Body implements HasElem {
   $elem: JQuery;
   public regions:any = {};
@@ -343,14 +302,16 @@ class Body implements HasElem {
   }
 }
 
+/* The main controller for the game. */
 class Game implements HasElem {
   $elem: JQuery;
   body: Body;
   dnaMgr: DNAManager;
   constructor(elem:any, cfg:any) {
     this.$elem = $(elem);
-    this.body = new Body(this.$elem.find('.body'), cfg);
     this.dnaMgr = new DNAManager();
+    cfg.rootDna = this.dnaMgr.root;
+    this.body = new Body(this.$elem.find('.body'), cfg);
     Msg.pub('game:init', this);
   }
 }

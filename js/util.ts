@@ -1,0 +1,59 @@
+/// <reference path="libs/defs/jquery-1.8.d.ts" />
+
+/** Simple pubsub based on https://gist.github.com/1319216 */
+module Msg {
+  var $elem = $({});
+
+  export function sub(topic:string, cb:Function) {
+    $elem.on(topic, () => {
+      return cb.apply(this, Array.prototype.slice.call(arguments, 1));
+    });
+  };
+
+  export function one(topic:string, cb:Function) {
+    $elem.one(topic, () => {
+      return cb.apply(this, Array.prototype.slice.call(arguments, 1));
+    });
+  };
+
+  export function unsub(...args: any[]) {
+    $elem.off.apply($elem, args);
+  };
+
+  export function pub(...args: any[]) {
+    $elem.trigger.apply($elem, args);
+  };
+}
+
+module Random {
+  export function int(min:number, max:number) {
+    return ((Math.random()*(max - min + 1)) + min) | 0;
+  }
+  export function choice(items:any[]) {
+    return items[int(0, items.length - 1)];
+  }
+}
+
+
+/** Automate boilerplate for things like callbacks after stopping typing. */
+function renewableTimeout(func, delay) {
+  var callT = null, callI = delay;
+  function callClear() {
+    if (callT) {
+      clearTimeout(callT);
+      callT = null;
+    }
+  }
+  function callSet(overrideI) {
+    callClear();
+    callT = setTimeout(function() {
+      callT = null;
+      func();
+    }, (overrideI !== undefined) ? overrideI : callI);
+  }
+  function callRun() {
+    callClear();
+    func();
+  }
+  return {clear: callClear, set: callSet, run: callRun};
+}
