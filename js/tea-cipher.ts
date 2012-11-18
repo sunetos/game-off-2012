@@ -89,21 +89,19 @@ module TEA {
     return [randomU32(), randomU32(), randomU32(), randomU32()];
   }
 
-  function wrap64b(func:Function, key:number[], bin:string, v):string {
+  function wrap64b(func:Function, key:number[], bin:string):string {
     var first:string = bin.slice(-64, -32), last:string = bin.slice(-32);
-    var v = v || [bin2int(first), bin2int(last)];
-    console.log(v);
+    var v = [bin2int(first), bin2int(last)];
     func(v, key);
-    console.log(v);
     return int2bin(v[0]) + int2bin(v[1]);
   }
 
   /** Encrypt a number encoded as a binary string up to 64 bits. */
-  export function encrypt64b(key:number[], bin:string, v):string {
-    return wrap64b(code2, key, bin, v);
+  export function encrypt64b(key:number[], bin:string):string {
+    return wrap64b(code2, key, bin);
   }
   /** Decrypt a number encoded as a binary string up to 64 bits. */
-  export function decrypt64b(key:number[], bin:string, v):string {
-    return wrap64b(decode2, key, bin, v);
+  export function decrypt64b(key:number[], bin:string):string {
+    return wrap64b(decode2, key, bin);
   }
 }

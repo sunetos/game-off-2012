@@ -77,23 +77,21 @@ var TEA;
         ];
     }
     TEA.randomKey = randomKey;
-    function wrap64b(func, key, bin, v) {
+    function wrap64b(func, key, bin) {
         var first = bin.slice(-64, -32), last = bin.slice(-32);
-        var v = v || [
+        var v = [
             bin2int(first), 
             bin2int(last)
         ];
-        console.log(v);
         func(v, key);
-        console.log(v);
         return int2bin(v[0]) + int2bin(v[1]);
     }
-    function encrypt64b(key, bin, v) {
-        return wrap64b(code2, key, bin, v);
+    function encrypt64b(key, bin) {
+        return wrap64b(code2, key, bin);
     }
     TEA.encrypt64b = encrypt64b;
-    function decrypt64b(key, bin, v) {
-        return wrap64b(decode2, key, bin, v);
+    function decrypt64b(key, bin) {
+        return wrap64b(decode2, key, bin);
     }
     TEA.decrypt64b = decrypt64b;
 })(TEA || (TEA = {}));
@@ -172,6 +170,13 @@ function renewableTimeout(func, delay) {
         run: callRun
     };
 }
+var KeyManager = (function () {
+    function KeyManager(key) {
+        this.key = key || TEA.randomKey();
+    }
+    return KeyManager;
+})();
+var keyMgr = new KeyManager();
 var DNA = (function () {
     function DNA(reproduce, apoptosis, grow, enzyme1, enzyme2, misc1) {
         if (typeof reproduce === "undefined") { reproduce = 1; }
@@ -207,12 +212,12 @@ var DNA = (function () {
             val |= _this[prop] << (i << 2);
         });
         this.code = TEA.int2bin(val);
-        this.encoded = TEA.encrypt64b(this.code);
+        this.encoded = TEA.encrypt64b(keyMgr.key, this.code);
     };
     DNA.prototype.copy = function (mutate) {
         if (typeof mutate === "undefined") { mutate = true; }
         var _this = this;
-        var doMutate = Random.int(1, this.manager.mutateResist) === 1;
+        var doMutate = mutate || Random.int(1, this.manager.mutateResist) === 1;
         if(!doMutate) {
             return this;
         }
@@ -244,8 +249,8 @@ var DNADisplay = (function () {
     function DNADisplay(dna) {
         this.dna = dna;
         this.$elem = $('<div class="dna"></div>');
-        for(var i = 0; i < dna.code.length; ++i) {
-            var cls = (dna.code[i] | 0) ? 'one' : 'zero';
+        for(var i = 0; i < dna.encoded.length; ++i) {
+            var cls = (dna.encoded[i] | 0) ? 'one' : 'zero';
             this.$elem.append($('<div></div>').addClass(cls));
         }
     }
@@ -264,6 +269,7 @@ var DNAManager = (function () {
 })();
 var CellProperties = (function () {
     function CellProperties(dna, reproduce, apoptosis, grow, enzyme1, enzyme2) {
+        if (typeof dna === "undefined") { dna = null; }
         if (typeof reproduce === "undefined") { reproduce = 5; }
         if (typeof apoptosis === "undefined") { apoptosis = 16; }
         if (typeof grow === "undefined") { grow = 10; }
@@ -276,6 +282,14 @@ var CellProperties = (function () {
         this.enzyme1 = enzyme1;
         this.enzyme2 = enzyme2;
     }
+    CellProperties.prototype.copy = function () {
+        var _this = this;
+        var props = new CellProperties();
+        Object.keys(this).forEach(function (prop) {
+            props[prop] = (_this[prop]['copy']) ? _this[prop].copy() : _this[prop];
+        });
+        return props;
+    };
     return CellProperties;
 })();
 var CELL_DEFS = {
@@ -392,29 +406,29 @@ var Cell = (function () {
         suitors.sort(function (c1, c2) {
             return c1.props.reproduce - c2.props.reproduce;
         });
-        var cloner = suitors[0];
-        this.cloneFrom(cloner);
+        var cell = suitors[0];
+        this.cloneFrom(cell);
     };
-    Cell.prototype.cloneFrom = function (cloner) {
+    Cell.prototype.cloneFrom = function (cell) {
         var _this = this;
         if(this.grid.visible) {
-            var $cloner = cloner.$elem, clonerElem = $cloner.get(0);
-            var pos = this.$elem.position(), cpos = $cloner.position();
-            var $clone = $cloner.clone().css({
+            var $cell = cell.$elem, cellElem = $cell.get(0);
+            var pos = this.$elem.position(), cpos = $cell.position();
+            var $clone = $cell.clone().css({
                 position: 'absolute',
                 left: cpos.left,
                 top: cpos.top
-            }).appendTo($cloner.parent());
+            }).appendTo($cell.parent());
             $clone.animate({
                 left: pos.left,
                 top: pos.top
             }, 200, 'swing', function () {
                 $clone.remove();
-                _this.become(cloner.kind, cloner.props);
+                _this.become(cell.kind, cell.props);
             });
         } else {
             setTimeout(function () {
-                return _this.become(cloner.kind, cloner.props);
+                return _this.become(cell.kind, cell.props);
             }, 200);
         }
     };

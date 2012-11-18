@@ -14,6 +14,15 @@ interface InGrid {
   addToGrid(grid:any, row:number, col:number);
 }
 
+class KeyManager {
+  public key:number[];
+  constructor(key?:number[]) {
+    this.key = key || TEA.randomKey();
+  }
+}
+
+var keyMgr:KeyManager = new KeyManager();
+
 
 /** The base properties that all cells share, binary from 1 to 32. */
 class DNA {
@@ -37,11 +46,11 @@ class DNA {
       val |= this[prop] << (i<<2);
     });
     this.code = TEA.int2bin(val);
-    this.encoded = TEA.encrypt64b(this.code);
+    this.encoded = TEA.encrypt64b(keyMgr.key, this.code);
   }
 
-  copy(mutate?:bool=true) {
-    var doMutate:bool = Random.int(1, this.manager.mutateResist) === 1;
+  copy(mutate?:bool=true):DNA {
+    var doMutate:bool = mutate || Random.int(1, this.manager.mutateResist) === 1;
     if (!doMutate) return this;
 
     var copy:DNA = new DNA();
@@ -75,8 +84,8 @@ class DNADisplay implements HasElem {
   $elem: JQuery;
   constructor(public dna:DNA) {
     this.$elem = $('<div class="dna"></div>');
-    for (var i = 0; i < dna.code.length; ++i) {
-      var cls = (dna.code[i] | 0) ? 'one' : 'zero';
+    for (var i = 0; i < dna.encoded.length; ++i) {
+      var cls = (dna.encoded[i] | 0) ? 'one' : 'zero';
       this.$elem.append($('<div></div>').addClass(cls));
     }
   }
@@ -99,9 +108,17 @@ class DNAManager {
 
 /** The properties are scale factors against the dna. */
 class CellProperties {
-  constructor(public dna:DNA, public reproduce:number=5,
+  constructor(public dna:DNA=null, public reproduce:number=5,
               public apoptosis:number=16, public grow:number=10,
               public enzyme1:number=16, public enzyme2:number=16) {
+  }
+
+  copy():CellProperties {
+    var props = new CellProperties();
+    Object.keys(this).forEach((prop) => {
+      props[prop] = (this[prop]['copy']) ? this[prop].copy() : this[prop];
+    });
+    return props;
   }
 }
 
@@ -192,22 +209,22 @@ class Cell implements HasElem, InGrid {
     }
     // TODO: Make the selection more advanced.
     suitors.sort((c1, c2) => c1.props.reproduce - c2.props.reproduce);
-    var cloner = suitors[0];
-    this.cloneFrom(cloner);
+    var cell = suitors[0];
+    this.cloneFrom(cell);
   }
-  cloneFrom(cloner:Cell) {
+  cloneFrom(cell:Cell) {
     if (this.grid.visible) {
-      var $cloner = cloner.$elem, clonerElem = $cloner.get(0);
-      var pos = this.$elem.position(), cpos = $cloner.position();
-      var $clone = $cloner.clone().css({
+      var $cell = cell.$elem, cellElem = $cell.get(0);
+      var pos = this.$elem.position(), cpos = $cell.position();
+      var $clone = $cell.clone().css({
           position: 'absolute', left: cpos.left, top: cpos.top
-      }).appendTo($cloner.parent());
+      }).appendTo($cell.parent());
       $clone.animate({left: pos.left, top: pos.top}, 200, 'swing', () => {
         $clone.remove();
-        this.become(cloner.kind, cloner.props);
+        this.become(cell.kind, cell.props);
       });
     } else {
-      setTimeout(() => this.become(cloner.kind, cloner.props), 200);
+      setTimeout(() => this.become(cell.kind, cell.props), 200);
     }
   }
   request(other:Cell) {
