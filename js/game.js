@@ -287,29 +287,29 @@ var CellProperties = (function () {
 })();
 var CELL_DEFS = {
     'bone': {
-        props: new CellProperties(1, 1.5, 1, 1, 1),
+        props: new CellProperties(1, 3, 1, 1, 1),
         enzymes: []
     },
     'brain': {
-        props: new CellProperties(1, 10, 2, 1, 1)
+        props: new CellProperties(1, 12, 2, 1, 1)
     },
     'colon': {
-        props: new CellProperties(1, 2, 1, 1, 1)
+        props: new CellProperties(1, 3, 1, 1, 1)
     },
     'eye': {
-        props: new CellProperties(1, 4, 1, 1, 1)
+        props: new CellProperties(1, 5, 1, 1, 1)
     },
     'lung': {
-        props: new CellProperties(1, 4, 1, 1, 1)
+        props: new CellProperties(1, 5, 1, 1, 1)
     },
     'heart': {
-        props: new CellProperties(1, 3, 1, 1, 1)
+        props: new CellProperties(1, 4, 1, 1, 1)
     },
     'liver': {
-        props: new CellProperties(1, 3, 1, 1, 1)
+        props: new CellProperties(1, 4, 1, 1, 1)
     },
     'muscle': {
-        props: new CellProperties(1, 5, 1, 1, 1)
+        props: new CellProperties(1, 6, 1, 1, 1)
     }
 };
 var CELL_KINDS = Object.keys(CELL_DEFS);
