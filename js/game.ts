@@ -202,7 +202,7 @@ class Cell implements HasElem, InGrid {
     });
   }
   /** You can fast-forward with a 0-1 scale based on the total life. */
-  birth(fastForward?:number) {
+  birth(fastForward:number=0) {
     var lifeSec = this.props.apoptosis, skipSec = 0;
     if (fastForward) {
       skipSec = lifeSec*fastForward;

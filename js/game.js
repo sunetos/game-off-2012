@@ -384,6 +384,7 @@ var Cell = (function () {
         });
     };
     Cell.prototype.birth = function (fastForward) {
+        if (typeof fastForward === "undefined") { fastForward = 0; }
         var lifeSec = this.props.apoptosis, skipSec = 0;
         if(fastForward) {
             skipSec = lifeSec * fastForward;
