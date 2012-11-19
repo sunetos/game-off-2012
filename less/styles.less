@@ -76,19 +76,16 @@ a, a:focus, a:hover {
 .cell {
   .gpu;
   .box-sizing(border-box);
-  .rounded(10px);
+  .circle(3px);
   border: 2px solid #999;
   background-color: #ccc;
-  position: relative;
+  display: inline-block;
 
   &:hover {
     border: 2px solid #9f9;
   }
 
   .cells & {
-    float: left;
-    width: 100%/@cell-cols;
-    height: 100%/@cell-rows;
     cursor: pointer;
   }
   &.brain { background-color: #cfc; }
@@ -251,6 +248,18 @@ a, a:focus, a:hover {
       .cells {
         .stretch-abs;
         top: 40px;
+
+        table {
+          .stretch-rel;
+          border-spacing: 0;
+
+          td {
+            margin: 0;
+            padding: 0;
+            vertical-align: middle;
+            text-align: center;
+          }
+        }
       }
     }
   }

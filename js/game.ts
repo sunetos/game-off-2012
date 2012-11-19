@@ -147,6 +147,8 @@ var CELL_REGIONS = {
     'legs': ['muscle', 'bone'],
 };
 var CELL_BROADCAST = 500;  // ms
+var FULL_W = 40, FULL_H = 40;
+var EMPTY_W = 5, EMPTY_H = 5;
 
 
 /** Where most of the magic happens. */
@@ -166,8 +168,12 @@ class Cell implements HasElem, InGrid {
     this.$elem = $('<div class="cell"></div>').addClass(kind);
     this.row = this.col = 0;
     this.broadcastT = renewableTimeout($.proxy(this, 'broadcast'), CELL_BROADCAST);
-    this.props = CELL_DEFS[kind].props.copy();
-    this.props.scale(dna);
+    if (kind === 'empty') {
+      this.props = new CellProperties();
+    } else {
+      this.props = CELL_DEFS[kind].props.copy();
+      this.props.scale(dna);
+    }
     //this.$props = $('<div class="props"></div>').appendTo(this.$elem);
     //this.setPropElems();
   }
@@ -195,13 +201,30 @@ class Cell implements HasElem, InGrid {
       });
     });
   }
-  birth() {
-    Msg.pub('cell:birth', this);
-    var deathTime = this.props.apoptosis*1000;
+  /** You can fast-forward with a 0-1 scale based on the total life. */
+  birth(fastForward?:number) {
+    var lifeSec = this.props.apoptosis, skipSec = 0;
+    if (fastForward) {
+      skipSec = lifeSec*fastForward;
+      lifeSec -= skipSec;
+    }
+    var lifeMs = lifeSec*1000;
     this.deathT = new TWEEN.Tween({life: this.props.apoptosis})
-    this.deathT.to({life: 0}, deathTime).onComplete($.proxy(this, 'die'));
+    this.deathT.to({life: 0}, lifeMs).onComplete($.proxy(this, 'die'));
     this.deathT.start();
+
+    var growSec = this.props.grow;
+    if (skipSec > growSec) {
+      this.$elem.width(FULL_W).height(FULL_H);
+    } else {
+      growSec -= skipSec;
+      var growMs = growSec*1000;
+      this.$elem.width(EMPTY_W).height(EMPTY_H).animate(
+          {width: FULL_W, height: FULL_H}, growMs, 'linear');
+    }
+
     if (this.kind === 'empty') this.broadcastT.set();
+    Msg.pub('cell:birth', this);
   }
   broadcast() {
     if (this.kind !== 'empty') return;
@@ -221,18 +244,26 @@ class Cell implements HasElem, InGrid {
     this.cloneFrom(cell);
   }
   cloneFrom(cell:Cell) {
+    // Need to capture these now in case the cell dies during timer.
+    var kind = cell.kind, dna = cell.dna;
+
     if (this.grid.visible) {
       var $cell = cell.$elem, cellElem = $cell.get(0);
       var pos = this.$elem.position(), cpos = $cell.position();
       var $clone = $cell.clone().css({
           position: 'absolute', left: cpos.left, top: cpos.top
       }).appendTo($cell.parent());
-      $clone.animate({left: pos.left, top: pos.top}, 200, 'swing', () => {
+      $clone.animate({
+          left: pos.left,
+          top: pos.top,
+          width: EMPTY_W,
+          height: EMPTY_H
+      }, 500, 'swing', () => {
         $clone.remove();
-        this.become(cell.kind, cell.dna);
+        this.become(kind, dna);
       });
     } else {
-      setTimeout(() => this.become(cell.kind, cell.dna), 200);
+      setTimeout(() => this.become(kind, dna), 500);
     }
   }
   request(other:Cell) {
@@ -242,7 +273,8 @@ class Cell implements HasElem, InGrid {
   die(reason:string, broadcast:bool=true) {
     Msg.pub('cell:death', self, reason);
     this.kind = 'empty';
-    this.$elem.removeClass(CELL_KINDS).addClass('empty');
+    this.$elem.removeClass(CELL_KINDS).addClass('empty')
+              .width(EMPTY_W).height(EMPTY_H);
     if (broadcast) {
       this.broadcastT.set();
     }
@@ -262,12 +294,14 @@ class Cell implements HasElem, InGrid {
 /** Each BodyRegion has multiple grids, and each grid many cells. */
 class CellGrid implements HasElem {
   $elem: JQuery;
+  $table: JQuery;
   public cells:Cell[] = [];
   rows = 1;
   cols = 1;
   constructor(public region:BodyRegion, public index:number, public name:string,
               elem:any, cfg:any) {
     this.$elem = $(elem);
+    this.$table = $('<table></table>').appendTo(this.$elem);
     this.rows = Math.max(1, cfg.rows);
     this.cols = Math.max(1, cfg.cols);
     var seedKind = CELL_REGIONS[region.name][index];
@@ -275,16 +309,20 @@ class CellGrid implements HasElem {
   }
   clear() {
     this.cells.forEach((cell) => { cell.die('clear'); });
+    this.$table.empty();
   }
   fill(dna:DNA, kind:string='empty') {
     this.clear();
     for (var row = 0; row < this.rows; ++row) {
+      var $row = $('<tr></tr>').appendTo(this.$table);
       for (var col = 0; col < this.cols; ++col) {
+        var $col = $('<td></td>').appendTo($row);
         var cell = new Cell(dna, kind);
         cell.addToGrid(this, row, col);
-        this.$elem.append(cell.$elem);
+        $col.append(cell.$elem);
         this.cells.push(cell);
-        cell.birth();
+        var fastFwd = Random.scale(0.8);
+        cell.birth(fastFwd);
       }
     }
   }

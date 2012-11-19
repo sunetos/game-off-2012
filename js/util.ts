@@ -32,6 +32,9 @@ module Random {
   export function choice(items:any[]) {
     return items[int(0, items.length - 1)];
   }
+  export function scale(scale:number=1.0) {
+    return Math.random()*scale;
+  }
 }
 
 

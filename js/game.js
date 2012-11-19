@@ -122,6 +122,11 @@ var Random;
         return items[int(0, items.length - 1)];
     }
     Random.choice = choice;
+    function scale(scale) {
+        if (typeof scale === "undefined") { scale = 1; }
+        return Math.random() * scale;
+    }
+    Random.scale = scale;
 })(Random || (Random = {}));
 function renewableTimeout(func, delay) {
     var callT = null, callI = delay;
@@ -321,6 +326,7 @@ var CELL_REGIONS = {
     ]
 };
 var CELL_BROADCAST = 500;
+var EMPTY_W = 5, EMPTY_H = 5;
 var Cell = (function () {
     function Cell(dna, kind) {
         this.dna = dna;
@@ -328,8 +334,12 @@ var Cell = (function () {
         this.$elem = $('<div class="cell"></div>').addClass(kind);
         this.row = this.col = 0;
         this.broadcastT = renewableTimeout($.proxy(this, 'broadcast'), CELL_BROADCAST);
-        this.props = CELL_DEFS[kind].props.copy();
-        this.props.scale(dna);
+        if(kind === 'empty') {
+            this.props = new CellProperties();
+        } else {
+            this.props = CELL_DEFS[kind].props.copy();
+            this.props.scale(dna);
+        }
     }
     Cell.prototype.setPropElems = function () {
         var _this = this;
@@ -366,19 +376,35 @@ var Cell = (function () {
             });
         });
     };
-    Cell.prototype.birth = function () {
-        Msg.pub('cell:birth', this);
-        var deathTime = this.props.apoptosis * 1000;
+    Cell.prototype.birth = function (fastForward) {
+        var lifeSec = this.props.apoptosis, skipSec = 0;
+        if(fastForward) {
+            skipSec = lifeSec * fastForward;
+            lifeSec -= skipSec;
+        }
+        var lifeMs = lifeSec * 1000;
         this.deathT = new TWEEN.Tween({
             life: this.props.apoptosis
         });
         this.deathT.to({
             life: 0
-        }, deathTime).onComplete($.proxy(this, 'die'));
+        }, lifeMs).onComplete($.proxy(this, 'die'));
         this.deathT.start();
+        var growSec = this.props.grow;
+        if(skipSec > growSec) {
+            this.$elem.width(40).height(40);
+        } else {
+            growSec -= skipSec;
+            var growMs = growSec * 1000;
+            this.$elem.width(EMPTY_W).height(EMPTY_H).animate({
+                width: 40,
+                height: 40
+            }, growMs, 'linear');
+        }
         if(this.kind === 'empty') {
             this.broadcastT.set();
         }
+        Msg.pub('cell:birth', this);
     };
     Cell.prototype.broadcast = function () {
         if(this.kind !== 'empty') {
@@ -401,6 +427,7 @@ var Cell = (function () {
     };
     Cell.prototype.cloneFrom = function (cell) {
         var _this = this;
+        var kind = cell.kind, dna = cell.dna;
         if(this.grid.visible) {
             var $cell = cell.$elem, cellElem = $cell.get(0);
             var pos = this.$elem.position(), cpos = $cell.position();
@@ -411,14 +438,16 @@ var Cell = (function () {
             }).appendTo($cell.parent());
             $clone.animate({
                 left: pos.left,
-                top: pos.top
-            }, 200, 'swing', function () {
+                top: pos.top,
+                width: EMPTY_W,
+                height: EMPTY_H
+            }, 800, 'swing', function () {
                 $clone.remove();
-                _this.become(cell.kind, cell.dna);
+                _this.become(kind, dna);
             });
         } else {
             setTimeout(function () {
-                return _this.become(cell.kind, cell.dna);
+                return _this.become(kind, dna);
             }, 200);
         }
     };
@@ -432,7 +461,7 @@ var Cell = (function () {
         if (typeof broadcast === "undefined") { broadcast = true; }
         Msg.pub('cell:death', self, reason);
         this.kind = 'empty';
-        this.$elem.removeClass(CELL_KINDS).addClass('empty');
+        this.$elem.removeClass(CELL_KINDS).addClass('empty').width(EMPTY_W).height(EMPTY_H);
         if(broadcast) {
             this.broadcastT.set();
         }
@@ -458,6 +487,7 @@ var CellGrid = (function () {
         this.rows = 1;
         this.cols = 1;
         this.$elem = $(elem);
+        this.$table = $('<table></table>').appendTo(this.$elem);
         this.rows = Math.max(1, cfg.rows);
         this.cols = Math.max(1, cfg.cols);
         var seedKind = CELL_REGIONS[region.name][index];
@@ -467,17 +497,21 @@ var CellGrid = (function () {
         this.cells.forEach(function (cell) {
             cell.die('clear');
         });
+        this.$table.empty();
     };
     CellGrid.prototype.fill = function (dna, kind) {
         if (typeof kind === "undefined") { kind = 'empty'; }
         this.clear();
         for(var row = 0; row < this.rows; ++row) {
+            var $row = $('<tr></tr>').appendTo(this.$table);
             for(var col = 0; col < this.cols; ++col) {
+                var $col = $('<td></td>').appendTo($row);
                 var cell = new Cell(dna, kind);
                 cell.addToGrid(this, row, col);
-                this.$elem.append(cell.$elem);
+                $col.append(cell.$elem);
                 this.cells.push(cell);
-                cell.birth();
+                var fastFwd = Random.scale(0.8);
+                cell.birth(fastFwd);
             }
         }
     };
