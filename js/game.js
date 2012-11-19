@@ -472,7 +472,7 @@ var Cell = (function () {
         if (typeof broadcast === "undefined") { broadcast = true; }
         Msg.pub('cell:death', self, reason);
         this.kind = 'empty';
-        this.$elem.removeClass(CELL_KINDS).addClass('empty');
+        this.$elem.stop().removeClass(CELL_KINDS).addClass('empty');
         resize(this.$elem, EMPTY_W, EMPTY_H);
         if(broadcast) {
             this.broadcastT.set();

@@ -66,5 +66,6 @@ function resize($elem:JQuery, w, h) {
   var elem = $elem.get(0);
   elem.style.width = w + 'px';
   elem.style.height = h + 'px';
+  //$elem.css({width: w + 'px', height: h + 'px'});
   return $elem;
 }
