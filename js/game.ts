@@ -341,7 +341,7 @@ class CellGrid implements HasElem {
 class BodyRegion implements HasElem {
   $elem: JQuery;
   public grids:any = {};
-  constructor(public name:string, elem:any, cfg:any) {
+  constructor(public body:Body, public name:string, elem:any, cfg:any) {
     this.$elem = $(elem);
     this.$elem.find('.grid').each((i, v) => {
       var grid = new CellGrid(this, i, $(v).data('name'), $(v).find('.cells'), cfg);
@@ -349,7 +349,7 @@ class BodyRegion implements HasElem {
     });
   }
   get visible():bool {
-    return ($.bbq.getState('region') === this.name);
+    return (this.body.visible && $.bbq.getState('region') === this.name);
   }
 }
 
@@ -357,25 +357,30 @@ class BodyRegion implements HasElem {
 class Body implements HasElem {
   $elem: JQuery;
   public regions:any = {};
-  constructor(elem:any, cfg:any) {
+  constructor(public game:Game, elem:any, cfg:any) {
     this.$elem = $(elem);
     this.$elem.find('section').each((i, v) => {
-      var region = new BodyRegion($(v).data('name'), v, cfg);
+      var region = new BodyRegion(this, $(v).data('name'), v, cfg);
       this.regions[region.name] = region;
     });
+  }
+  get visible():bool {
+    return this.game.visible;
   }
 }
 
 /* The main controller for the game. */
 class Game implements HasElem {
   $elem: JQuery;
+  visible: bool;
   body: Body;
   dnaMgr: DNAManager;
   constructor(elem:any, cfg:any) {
     this.$elem = $(elem);
+    this.visible = true;
     this.dnaMgr = new DNAManager();
     cfg.rootDna = this.dnaMgr.root;
-    this.body = new Body(this.$elem.find('.body'), cfg);
+    this.body = new Body(this, this.$elem.find('.body'), cfg);
     Msg.pub('game:init', this);
   }
 }

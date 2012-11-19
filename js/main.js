@@ -16,6 +16,11 @@ $(function() {
   }
   animate();
 
+  visibly.visibilitychange(function(state) {
+    console.log('The current visibility state is:' + state);
+    game.visible = (state === 'visible');
+  });
+
   function hashchange(e) {
     var param = $.bbq.getState();
     $(['.body section', '.map nav li']).each(function(i, s) {

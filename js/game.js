@@ -326,6 +326,7 @@ var CELL_REGIONS = {
     ]
 };
 var CELL_BROADCAST = 500;
+var FULL_W = 40, FULL_H = 40;
 var EMPTY_W = 5, EMPTY_H = 5;
 var Cell = (function () {
     function Cell(dna, kind) {
@@ -392,13 +393,13 @@ var Cell = (function () {
         this.deathT.start();
         var growSec = this.props.grow;
         if(skipSec > growSec) {
-            this.$elem.width(40).height(40);
+            this.$elem.width(FULL_W).height(FULL_H);
         } else {
             growSec -= skipSec;
             var growMs = growSec * 1000;
             this.$elem.width(EMPTY_W).height(EMPTY_H).animate({
-                width: 40,
-                height: 40
+                width: FULL_W,
+                height: FULL_H
             }, growMs, 'linear');
         }
         if(this.kind === 'empty') {
@@ -441,14 +442,14 @@ var Cell = (function () {
                 top: pos.top,
                 width: EMPTY_W,
                 height: EMPTY_H
-            }, 800, 'swing', function () {
+            }, 500, 'swing', function () {
                 $clone.remove();
                 _this.become(kind, dna);
             });
         } else {
             setTimeout(function () {
                 return _this.become(kind, dna);
-            }, 200);
+            }, 500);
         }
     };
     Cell.prototype.request = function (other) {
@@ -530,7 +531,8 @@ var CellGrid = (function () {
     return CellGrid;
 })();
 var BodyRegion = (function () {
-    function BodyRegion(name, elem, cfg) {
+    function BodyRegion(body, name, elem, cfg) {
+        this.body = body;
         this.name = name;
         var _this = this;
         this.grids = {
@@ -543,7 +545,7 @@ var BodyRegion = (function () {
     }
     Object.defineProperty(BodyRegion.prototype, "visible", {
         get: function () {
-            return ($.bbq.getState('region') === this.name);
+            return (this.body.visible && $.bbq.getState('region') === this.name);
         },
         enumerable: true,
         configurable: true
@@ -551,24 +553,33 @@ var BodyRegion = (function () {
     return BodyRegion;
 })();
 var Body = (function () {
-    function Body(elem, cfg) {
+    function Body(game, elem, cfg) {
+        this.game = game;
         var _this = this;
         this.regions = {
         };
         this.$elem = $(elem);
         this.$elem.find('section').each(function (i, v) {
-            var region = new BodyRegion($(v).data('name'), v, cfg);
+            var region = new BodyRegion(_this, $(v).data('name'), v, cfg);
             _this.regions[region.name] = region;
         });
     }
+    Object.defineProperty(Body.prototype, "visible", {
+        get: function () {
+            return this.game.visible;
+        },
+        enumerable: true,
+        configurable: true
+    });
     return Body;
 })();
 var Game = (function () {
     function Game(elem, cfg) {
         this.$elem = $(elem);
+        this.visible = true;
         this.dnaMgr = new DNAManager();
         cfg.rootDna = this.dnaMgr.root;
-        this.body = new Body(this.$elem.find('.body'), cfg);
+        this.body = new Body(this, this.$elem.find('.body'), cfg);
         Msg.pub('game:init', this);
     }
     return Game;
