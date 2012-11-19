@@ -76,10 +76,11 @@ a, a:focus, a:hover {
 .cell {
   .gpu;
   .box-sizing(border-box);
-  .circle(3px);
-  border: 2px solid #999;
-  background-color: #ccc;
+  //border: 2px solid #999;
+  //background-color: #ccc;
   display: inline-block;
+  background: url(/img/blank-cell.png) no-repeat center center;
+  .background-size(contain);
 
   &:hover {
     border: 2px solid #9f9;
@@ -88,10 +89,12 @@ a, a:focus, a:hover {
   .cells & {
     cursor: pointer;
   }
+  /*
   &.brain { background-color: #cfc; }
   &.lung { background-color: #fcc; }
   &.liver { background-color: #ccf; }
   &.muscle { background-color: #ccc; }
+  */
 
   //.transition(~"opacity 0.5s ease-in");
   .opacity(1.0);
@@ -252,12 +255,14 @@ a, a:focus, a:hover {
         table {
           .stretch-rel;
           border-spacing: 0;
+          table-layout: fixed;
 
           td {
             margin: 0;
             padding: 0;
             vertical-align: middle;
             text-align: center;
+            width: 100%/@cell-rows;
           }
         }
       }

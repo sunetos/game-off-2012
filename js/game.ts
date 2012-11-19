@@ -215,12 +215,14 @@ class Cell implements HasElem, InGrid {
 
     var growSec = this.props.grow;
     if (skipSec > growSec) {
-      this.$elem.width(FULL_W).height(FULL_H);
+      resize(this.$elem, FULL_W, FULL_H);
     } else {
       growSec -= skipSec;
       var growMs = growSec*1000;
-      this.$elem.width(EMPTY_W).height(EMPTY_H).animate(
-          {width: FULL_W, height: FULL_H}, growMs, 'linear');
+      var startW = EMPTY_W + (FULL_W - EMPTY_W)*fastForward;
+      var startH = EMPTY_H + (FULL_H - EMPTY_H)*fastForward;
+      resize(this.$elem, startW, startH);
+      this.$elem.animate({width: FULL_W, height: FULL_H}, growMs, 'linear');
     }
 
     if (this.kind === 'empty') this.broadcastT.set();
@@ -273,8 +275,8 @@ class Cell implements HasElem, InGrid {
   die(reason:string, broadcast:bool=true) {
     Msg.pub('cell:death', self, reason);
     this.kind = 'empty';
-    this.$elem.removeClass(CELL_KINDS).addClass('empty')
-              .width(EMPTY_W).height(EMPTY_H);
+    this.$elem.removeClass(CELL_KINDS).addClass('empty');
+    resize(this.$elem, EMPTY_W, EMPTY_H);
     if (broadcast) {
       this.broadcastT.set();
     }
@@ -349,7 +351,7 @@ class BodyRegion implements HasElem {
     });
   }
   get visible():bool {
-    return (this.body.visible && $.bbq.getState('region') === this.name);
+    return (this.body.visible && this.body.visibleRegion  === this.name);
   }
 }
 
@@ -357,6 +359,8 @@ class BodyRegion implements HasElem {
 class Body implements HasElem {
   $elem: JQuery;
   public regions:any = {};
+  public visibleRegion:string = null;
+
   constructor(public game:Game, elem:any, cfg:any) {
     this.$elem = $(elem);
     this.$elem.find('section').each((i, v) => {

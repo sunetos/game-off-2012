@@ -60,3 +60,11 @@ function renewableTimeout(func, delay) {
   }
   return {clear: callClear, set: callSet, run: callRun};
 }
+
+/** jQuery width and height are still buggy with box-sizing, so use css. */
+function resize($elem:JQuery, w, h) {
+  var elem = $elem.get(0);
+  elem.style.width = w + 'px';
+  elem.style.height = h + 'px';
+  return $elem;
+}

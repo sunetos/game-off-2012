@@ -153,6 +153,12 @@ function renewableTimeout(func, delay) {
         run: callRun
     };
 }
+function resize($elem, w, h) {
+    var elem = $elem.get(0);
+    elem.style.width = w + 'px';
+    elem.style.height = h + 'px';
+    return $elem;
+}
 var KeyManager = (function () {
     function KeyManager(key) {
         this.key = key || TEA.randomKey();
@@ -393,11 +399,14 @@ var Cell = (function () {
         this.deathT.start();
         var growSec = this.props.grow;
         if(skipSec > growSec) {
-            this.$elem.width(FULL_W).height(FULL_H);
+            resize(this.$elem, FULL_W, FULL_H);
         } else {
             growSec -= skipSec;
             var growMs = growSec * 1000;
-            this.$elem.width(EMPTY_W).height(EMPTY_H).animate({
+            var startW = EMPTY_W + (FULL_W - EMPTY_W) * fastForward;
+            var startH = EMPTY_H + (FULL_H - EMPTY_H) * fastForward;
+            resize(this.$elem, startW, startH);
+            this.$elem.animate({
                 width: FULL_W,
                 height: FULL_H
             }, growMs, 'linear');
@@ -462,7 +471,8 @@ var Cell = (function () {
         if (typeof broadcast === "undefined") { broadcast = true; }
         Msg.pub('cell:death', self, reason);
         this.kind = 'empty';
-        this.$elem.removeClass(CELL_KINDS).addClass('empty').width(EMPTY_W).height(EMPTY_H);
+        this.$elem.removeClass(CELL_KINDS).addClass('empty');
+        resize(this.$elem, EMPTY_W, EMPTY_H);
         if(broadcast) {
             this.broadcastT.set();
         }
@@ -545,7 +555,7 @@ var BodyRegion = (function () {
     }
     Object.defineProperty(BodyRegion.prototype, "visible", {
         get: function () {
-            return (this.body.visible && $.bbq.getState('region') === this.name);
+            return (this.body.visible && this.body.visibleRegion === this.name);
         },
         enumerable: true,
         configurable: true
@@ -558,6 +568,7 @@ var Body = (function () {
         var _this = this;
         this.regions = {
         };
+        this.visibleRegion = null;
         this.$elem = $(elem);
         this.$elem.find('section').each(function (i, v) {
             var region = new BodyRegion(_this, $(v).data('name'), v, cfg);

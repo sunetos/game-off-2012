@@ -5,6 +5,8 @@ $(document).on('click', '[href^="#"]', function(e) {
 });
 
 $(function() {
+  if ($.support.transition) $.fn.animate = $.fn.transition;
+
   Msg.sub('game:init', function() {
     console.log('game:init');
   });
@@ -23,6 +25,7 @@ $(function() {
 
   function hashchange(e) {
     var param = $.bbq.getState();
+    game.body.visibleRegion = param.region;
     $(['.body section', '.map nav li']).each(function(i, s) {
       $(s).removeClass('active').filter('.' + param.region).addClass('active');
     });
