@@ -10,8 +10,8 @@
 @text: #ddd;
 @active: rgba(0, 255, 0, 1.0);
 
-@cell-rows: 8;
-@cell-cols: 10;
+@cell-rows: 6;
+@cell-cols: 6;
 
 
 html, body {
@@ -55,13 +55,13 @@ a, a:focus, a:hover {
 .keyframes(scroll-bg-vert, bg-vert-top, bg-vert-bottom);
 
 .ether {
-  .translateZ(0);
+  .gpu;
   .stretch-rel;
   background-color: darken(@blood, 25%);
   z-index: -1;
 
   &:before {
-    .translateZ(0);
+    .gpu;
     .stretch-abs;
     background: url(/img/blood-cells-grey-alpha-png8.png) repeat 0 0 scroll;
     content: '';
@@ -74,6 +74,7 @@ a, a:focus, a:hover {
 }
 
 .cell {
+  .gpu;
   .box-sizing(border-box);
   .rounded(10px);
   border: 2px solid #999;

@@ -1,28 +1,6 @@
 var TEA;
 (function (TEA) {
     function code(v, k) {
-        var y = v[0], z = v[1];
-        var delta = 2654435769, limit = delta * 32, sum = 0;
-        while(sum != limit) {
-            y += (z << 4 ^ z >>> 5) + z ^ sum + k[sum & 3];
-            sum += delta;
-            z += (y << 4 ^ y >>> 5) + y ^ sum + k[sum >>> 11 & 3];
-        }
-        v[0] = y;
-        v[1] = z;
-    }
-    function decode(v, k) {
-        var y = v[0], z = v[1];
-        var delta = 2654435769, sum = delta * 32;
-        while(sum != 0) {
-            z -= (y << 4 ^ y >>> 5) + y ^ sum + k[sum >>> 11 & 3];
-            sum -= delta;
-            y -= (z << 4 ^ z >>> 5) + z ^ sum + k[sum & 3];
-        }
-        v[0] = y;
-        v[1] = z;
-    }
-    function code2(v, k) {
         var n = v.length;
         var z = v[n - 1], y = v[0], delta = 2654435769;
         var mx, e, q = Math.floor(6 + 52 / n), sum = 0;
@@ -36,7 +14,7 @@ var TEA;
             }
         }
     }
-    function decode2(v, k) {
+    function decode(v, k) {
         var n = v.length;
         var z = v[n - 1], y = v[0], delta = 2654435769;
         var mx, e, q = Math.floor(6 + 52 / n), sum = q * delta;
@@ -87,11 +65,11 @@ var TEA;
         return int2bin(v[0]) + int2bin(v[1]);
     }
     function encrypt64b(key, bin) {
-        return wrap64b(code2, key, bin);
+        return wrap64b(code, key, bin);
     }
     TEA.encrypt64b = encrypt64b;
     function decrypt64b(key, bin) {
-        return wrap64b(decode2, key, bin);
+        return wrap64b(decode, key, bin);
     }
     TEA.decrypt64b = decrypt64b;
 })(TEA || (TEA = {}));
@@ -268,14 +246,12 @@ var DNAManager = (function () {
     return DNAManager;
 })();
 var CellProperties = (function () {
-    function CellProperties(dna, reproduce, apoptosis, grow, enzyme1, enzyme2) {
-        if (typeof dna === "undefined") { dna = null; }
+    function CellProperties(reproduce, apoptosis, grow, enzyme1, enzyme2) {
         if (typeof reproduce === "undefined") { reproduce = 5; }
         if (typeof apoptosis === "undefined") { apoptosis = 16; }
         if (typeof grow === "undefined") { grow = 10; }
         if (typeof enzyme1 === "undefined") { enzyme1 = 16; }
         if (typeof enzyme2 === "undefined") { enzyme2 = 16; }
-        this.dna = dna;
         this.reproduce = reproduce;
         this.apoptosis = apoptosis;
         this.grow = grow;
@@ -290,24 +266,39 @@ var CellProperties = (function () {
         });
         return props;
     };
+    CellProperties.prototype.scale = function (props) {
+        var _this = this;
+        Object.keys(this).forEach(function (prop) {
+            _this[prop] = (_this[prop] * props[prop]) | 0;
+        });
+    };
     return CellProperties;
 })();
 var CELL_DEFS = {
+    'bone': {
+        props: new CellProperties(1, 1.5, 1, 1, 1),
+        enzymes: []
+    },
     'brain': {
+        props: new CellProperties(1, 10, 2, 1, 1)
     },
     'colon': {
+        props: new CellProperties(1, 2, 1, 1, 1)
     },
     'eye': {
+        props: new CellProperties(1, 4, 1, 1, 1)
     },
     'lung': {
+        props: new CellProperties(1, 4, 1, 1, 1)
     },
     'heart': {
+        props: new CellProperties(1, 3, 1, 1, 1)
     },
     'liver': {
+        props: new CellProperties(1, 3, 1, 1, 1)
     },
     'muscle': {
-    },
-    'skin': {
+        props: new CellProperties(1, 5, 1, 1, 1)
     }
 };
 var CELL_KINDS = Object.keys(CELL_DEFS);
@@ -326,7 +317,7 @@ var CELL_REGIONS = {
     ],
     'legs': [
         'muscle', 
-        'skin'
+        'bone'
     ]
 };
 var CELL_BROADCAST = 500;
@@ -335,11 +326,10 @@ var Cell = (function () {
         this.dna = dna;
         this.kind = kind;
         this.$elem = $('<div class="cell"></div>').addClass(kind);
-        this.$props = $('<div class="props"></div>').appendTo(this.$elem);
         this.row = this.col = 0;
         this.broadcastT = renewableTimeout($.proxy(this, 'broadcast'), CELL_BROADCAST);
-        this.props = new CellProperties(dna, Random.int(3, 8), Random.int(10, 20));
-        this.setPropElems();
+        this.props = CELL_DEFS[kind].props.copy();
+        this.props.scale(dna);
     }
     Cell.prototype.setPropElems = function () {
         var _this = this;
@@ -424,11 +414,11 @@ var Cell = (function () {
                 top: pos.top
             }, 200, 'swing', function () {
                 $clone.remove();
-                _this.become(cell.kind, cell.props);
+                _this.become(cell.kind, cell.dna);
             });
         } else {
             setTimeout(function () {
-                return _this.become(cell.kind, cell.props);
+                return _this.become(cell.kind, cell.dna);
             }, 200);
         }
     };
@@ -447,12 +437,13 @@ var Cell = (function () {
             this.broadcastT.set();
         }
     };
-    Cell.prototype.become = function (kind, props) {
+    Cell.prototype.become = function (kind, dna) {
         this.kind = kind;
-        if(props) {
-            this.props = props;
-            this.setPropElems();
+        if(dna) {
+            this.dna = dna.copy();
         }
+        this.props = CELL_DEFS[kind].props.copy();
+        this.props.scale(dna);
         this.$elem.removeClass('empty').addClass(kind);
         this.birth();
     };

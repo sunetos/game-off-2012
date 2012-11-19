@@ -8,7 +8,7 @@ $(function() {
   Msg.sub('game:init', function() {
     console.log('game:init');
   });
-  window.game = new Game('#game', {rows: 8, cols: 10});
+  window.game = new Game('#game', {rows: 6, cols: 6});
 
   function animate() {
     requestAnimationFrame(animate);

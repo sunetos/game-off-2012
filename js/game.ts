@@ -108,9 +108,9 @@ class DNAManager {
 
 /** The properties are scale factors against the dna. */
 class CellProperties {
-  constructor(public dna:DNA=null, public reproduce:number=5,
-              public apoptosis:number=16, public grow:number=10,
-              public enzyme1:number=16, public enzyme2:number=16) {
+  constructor(public reproduce:number=5, public apoptosis:number=16,
+              public grow:number=10, public enzyme1:number=16,
+              public enzyme2:number=16) {
   }
 
   copy():CellProperties {
@@ -120,24 +120,31 @@ class CellProperties {
     });
     return props;
   }
+
+  /** This is mainly used to scale the cell properties by the DNA base. */
+  scale(props:any) {
+    Object.keys(this).forEach((prop) => {
+      this[prop] = (this[prop]*props[prop]) | 0;
+    });
+  }
 }
 
 var CELL_DEFS = {
-    'brain': {},
-    'colon': {},
-    'eye': {},
-    'lung': {},
-    'heart': {},
-    'liver': {},
-    'muscle': {},
-    'skin': {},
+    'bone': {props: new CellProperties(1, 1.5, 1, 1, 1), enzymes: []},
+    'brain': {props: new CellProperties(1, 10, 2, 1, 1)},
+    'colon': {props: new CellProperties(1, 2, 1, 1, 1)},
+    'eye': {props: new CellProperties(1, 4, 1, 1, 1)},
+    'lung': {props: new CellProperties(1, 4, 1, 1, 1)},
+    'heart': {props: new CellProperties(1, 3, 1, 1, 1)},
+    'liver': {props: new CellProperties(1, 3, 1, 1, 1)},
+    'muscle': {props: new CellProperties(1, 5, 1, 1, 1)},
 };
 var CELL_KINDS = Object.keys(CELL_DEFS);
 var CELL_REGIONS = {
     'head': ['brain', 'eye'],
     'torso': ['lung', 'heart'],
     'midsection': ['liver', 'colon'],
-    'legs': ['muscle', 'skin'],
+    'legs': ['muscle', 'bone'],
 };
 var CELL_BROADCAST = 500;  // ms
 
@@ -157,11 +164,12 @@ class Cell implements HasElem, InGrid {
 
   constructor(public dna:DNA, public kind:string) {
     this.$elem = $('<div class="cell"></div>').addClass(kind);
-    this.$props = $('<div class="props"></div>').appendTo(this.$elem);
     this.row = this.col = 0;
     this.broadcastT = renewableTimeout($.proxy(this, 'broadcast'), CELL_BROADCAST);
-    this.props = new CellProperties(dna, Random.int(3, 8), Random.int(10, 20));
-    this.setPropElems();
+    this.props = CELL_DEFS[kind].props.copy();
+    this.props.scale(dna);
+    //this.$props = $('<div class="props"></div>').appendTo(this.$elem);
+    //this.setPropElems();
   }
   setPropElems() {
     Object.keys(this.props).forEach((prop) => {
@@ -221,10 +229,10 @@ class Cell implements HasElem, InGrid {
       }).appendTo($cell.parent());
       $clone.animate({left: pos.left, top: pos.top}, 200, 'swing', () => {
         $clone.remove();
-        this.become(cell.kind, cell.props);
+        this.become(cell.kind, cell.dna);
       });
     } else {
-      setTimeout(() => this.become(cell.kind, cell.props), 200);
+      setTimeout(() => this.become(cell.kind, cell.dna), 200);
     }
   }
   request(other:Cell) {
@@ -239,12 +247,13 @@ class Cell implements HasElem, InGrid {
       this.broadcastT.set();
     }
   }
-  become(kind:string, props?:CellProperties) {
+  become(kind:string, dna?:DNA) {
     this.kind = kind;
-    if (props) {
-      this.props = props;
-      this.setPropElems();
+    if (dna) {
+      this.dna = dna.copy();
     }
+    this.props = CELL_DEFS[kind].props.copy();
+    this.props.scale(dna);
     this.$elem.removeClass('empty').addClass(kind);
     this.birth();
   }

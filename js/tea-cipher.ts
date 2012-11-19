@@ -1,35 +1,11 @@
-/** TEA Cipher wrapping: http://www.movable-type.co.uk/scripts/tea.html */
+/** TEA Simple Block Cipher apapted from:
+ *  http://www.movable-type.co.uk/scripts/tea-block.html
+ */
 
 module TEA {
+
+  /** XXTEA supporting any number of blocks. */
   function code(v:number[], k:number[]) {
-    // Extended TEA: this is the 1997 revised version of Needham & Wheeler's algorithm
-    // params: v[2] 64-bit value block; k[4] 128-bit key
-    var y = v[0], z = v[1];
-    var delta = 0x9E3779B9, limit = delta*32, sum = 0;
-
-    while (sum != limit) {
-      y += (z<<4 ^ z>>>5)+z ^ sum+k[sum & 3];
-      sum += delta;
-      z += (y<<4 ^ y>>>5)+y ^ sum+k[sum>>>11 & 3];
-      // note: unsigned right-shift '>>>' is used in place of original '>>', due to lack 
-      // of 'unsigned' type declaration in JavaScript (thanks to Karsten Kraus for this)
-    }
-    v[0] = y; v[1] = z;
-  }
-
-  function decode(v:number[], k:number[]) {
-    var y = v[0], z = v[1];
-    var delta = 0x9E3779B9, sum = delta*32;
-
-    while (sum != 0) {
-      z -= (y<<4 ^ y>>>5)+y ^ sum+k[sum>>>11 & 3];
-      sum -= delta;
-      y -= (z<<4 ^ z>>>5)+z ^ sum+k[sum & 3];
-    }
-    v[0] = y; v[1] = z;
-  }
-
-  function code2(v:number[], k:number[]) {
     var n = v.length;
     var z = v[n-1], y = v[0], delta = 0x9E3779B9;
     var mx, e, q = Math.floor(6 + 52/n), sum = 0;
@@ -45,7 +21,8 @@ module TEA {
     }
   }
 
-  function decode2(v:number[], k:number[]) {
+  /** XXTEA supporting any number of blocks. */
+  function decode(v:number[], k:number[]) {
     var n = v.length;
     var z = v[n-1], y = v[0], delta = 0x9E3779B9;
     var mx, e, q = Math.floor(6 + 52/n), sum = q*delta;
@@ -98,10 +75,10 @@ module TEA {
 
   /** Encrypt a number encoded as a binary string up to 64 bits. */
   export function encrypt64b(key:number[], bin:string):string {
-    return wrap64b(code2, key, bin);
+    return wrap64b(code, key, bin);
   }
   /** Decrypt a number encoded as a binary string up to 64 bits. */
   export function decrypt64b(key:number[], bin:string):string {
-    return wrap64b(decode2, key, bin);
+    return wrap64b(decode, key, bin);
   }
 }

@@ -847,6 +847,11 @@ to {
   animation: scroll-bg-vert 30s linear 0s infinite;
 }
 .cell {
+  -webkit-transform: translateZ(0);
+  -moz-transform: translateZ(0);
+  -o-transform: translateZ(0);
+  -ms-transform: translateZ(0);
+  transform: translateZ(0);
   -webkit-box-sizing: border-box;
   -moz-box-sizing: border-box;
   box-sizing: border-box;
@@ -869,8 +874,8 @@ to {
 }
 .cells .cell {
   float: left;
-  width: 10%;
-  height: 12.5%;
+  width: 16.666666666666668%;
+  height: 16.666666666666668%;
   cursor: pointer;
 }
 .cell.brain {
