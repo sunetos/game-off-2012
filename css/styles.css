@@ -41,9 +41,11 @@ audio:not([controls]) {
  * and Safari 4.
  * Known issue: no IE 6 support.
  */
+/* Removing for performance reasons (Adam R. Smith).
 [hidden] {
-  display: none;
+    display: none;
 }
+*/
 /* ==========================================================================
    Base
    ========================================================================== */
@@ -470,14 +472,17 @@ body {
  * These selection declarations have to be separate.
  * Customize the background color to match your design.
  */
+/* Removing for performance reasons (Adam R. Smith).
 ::-moz-selection {
-  background: #b3d4fc;
-  text-shadow: none;
+    background: #b3d4fc;
+    text-shadow: none;
 }
+
 ::selection {
-  background: #b3d4fc;
-  text-shadow: none;
+    background: #b3d4fc;
+    text-shadow: none;
 }
+*/
 /*
  * A better looking default horizontal rule
  */
@@ -860,6 +865,7 @@ to {
   -webkit-background-size: contain;
   -moz-background-size: contain;
   background-size: contain;
+  cursor: pointer;
   /*
   &.brain { background-color: #cfc; }
   &.lung { background-color: #fcc; }
@@ -874,9 +880,6 @@ to {
 }
 .cell:hover {
   border: 2px solid #9f9;
-}
-.cells .cell {
-  cursor: pointer;
 }
 .cell .props {
   position: absolute;
@@ -1145,6 +1148,9 @@ to {
   height: 100%;
   border-spacing: 0;
   table-layout: fixed;
+}
+.game section .grids .cells table tr {
+  height: 16.666666666666668%;
 }
 .game section .grids .cells table td {
   margin: 0;

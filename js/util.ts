@@ -1,27 +1,33 @@
 /// <reference path="libs/defs/jquery-1.8.d.ts" />
+/// <reference path="libs/defs/tween.js-r7.d.ts" />
 
-/** Simple pubsub based on https://gist.github.com/1319216 */
+/** Simple lightweight pubsub. */
 module Msg {
-  var $elem = $({});
+  var subs = {};
 
-  export function sub(topic:string, cb:Function) {
-    $elem.on(topic, () => {
-      return cb.apply(this, Array.prototype.slice.call(arguments, 1));
+  export function sub(topic:string, cb:Function, context:any=window) {
+    (subs[topic] = subs[topic] || []).push([cb, context]);
+  };
+
+  export function unsub(topic:string, cb?:Function, context:any=window) {
+    if (cb) {
+      var cbs = subs[topic];
+      for (var i = 0; i < cbs.length; ++i) {
+        var cbi = cbs[i];
+        if (cb === cbi[0] && context === cbi[1]) {
+          cbs.splice(i, 1);
+          --i;
+        }
+      }
+    } else {
+      delete subs[topic];
+    }
+  };
+
+  export function pub(topic:string, ...args: any[]) {
+    subs[topic] && subs[topic].forEach(function(cbi) {
+      cbi[0].apply(cbi[1], args);
     });
-  };
-
-  export function one(topic:string, cb:Function) {
-    $elem.one(topic, () => {
-      return cb.apply(this, Array.prototype.slice.call(arguments, 1));
-    });
-  };
-
-  export function unsub(...args: any[]) {
-    $elem.off.apply($elem, args);
-  };
-
-  export function pub(...args: any[]) {
-    $elem.trigger.apply($elem, args);
   };
 }
 
@@ -61,11 +67,46 @@ function renewableTimeout(func, delay) {
   return {clear: callClear, set: callSet, run: callRun};
 }
 
+function tweenTimeout(cb:Function, delay:number):TWEEN.Tween {
+  return (new TWEEN.Tween({}).to({}, delay)).onComplete(cb).start();
+}
+
 /** jQuery width and height are still buggy with box-sizing, so use css. */
 function resize($elem:JQuery, w, h) {
   var elem = $elem.get(0);
   elem.style.width = w + 'px';
   elem.style.height = h + 'px';
-  //$elem.css({width: w + 'px', height: h + 'px'});
   return $elem;
 }
+
+interface JQuery {
+  pause(): JQuery;
+  transition(props:any, duration:number, easing:string, cb?:Function): JQuery;
+}
+
+jQuery.fn.pause = function():JQuery {
+  return this.css('transition-duration', '0s');
+}
+
+/** Attempting to get better performance than jQuery.animate.enhanced. */
+jQuery.fn.transition = function(
+    props:any, duration:number, easing:string, cb?:Function):JQuery {
+  var trans = [], durStr = (duration | 0) + 'ms';
+  for (var prop in props) {
+    trans.push([prop, durStr, easing].join(' '));
+  }
+  this.css('transition', trans.join(', '));
+  // For some reason it doesn't work until we read a property back.
+  this.css('transition-duration');
+
+  for (var prop in props) {
+    var val = props[prop];
+    for (var i = 0; i < this.length; ++i) {
+      this[i].style[prop] = (typeof(val) === 'number') ? val + 'px' : val;
+    }
+  }
+
+  if (cb) tweenTimeout(cb, duration);
+  return this;
+}
+

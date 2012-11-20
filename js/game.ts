@@ -4,6 +4,7 @@
 /// <reference path="tea-cipher.ts" />
 /// <reference path="util.ts" />
 
+
 interface HasElem {
   $elem: JQuery;
 }
@@ -197,7 +198,7 @@ class Cell implements HasElem, InGrid {
       [col - 1, col, col + 1].forEach((c) => {
         if (r === row && c === col) return;
         var gridPos = grid.name + '-' + r + 'x' + c;
-        Msg.sub('cell:vacant:' + gridPos, $.proxy(this, 'request'));
+        Msg.sub('cell:vacant:' + gridPos, this.request, this);
       });
     });
   }
@@ -213,7 +214,7 @@ class Cell implements HasElem, InGrid {
     this.deathT.to({life: 0}, lifeMs).onComplete($.proxy(this, 'die'));
     this.deathT.start();
 
-    var growSec = this.props.grow;
+    var growSec:number = this.props.grow;
     if (skipSec > growSec) {
       resize(this.$elem, FULL_W, FULL_H);
     } else {
@@ -222,7 +223,7 @@ class Cell implements HasElem, InGrid {
       var startW = EMPTY_W + (FULL_W - EMPTY_W)*fastForward;
       var startH = EMPTY_H + (FULL_H - EMPTY_H)*fastForward;
       resize(this.$elem, startW, startH);
-      this.$elem.animate({width: FULL_W, height: FULL_H}, growMs, 'linear');
+      this.$elem.transition({width: FULL_W, height: FULL_H}, growMs, 'linear');
     }
 
     if (this.kind === 'empty') this.broadcastT.set();
@@ -255,17 +256,17 @@ class Cell implements HasElem, InGrid {
       var $clone = $cell.clone().css({
           position: 'absolute', left: cpos.left, top: cpos.top
       }).appendTo($cell.parent());
-      $clone.animate({
+      $clone.transition({
           left: pos.left,
           top: pos.top,
           width: EMPTY_W,
           height: EMPTY_H
-      }, 500, 'swing', () => {
+      }, 500, 'linear', () => {
         $clone.remove();
         this.become(kind, dna);
       });
     } else {
-      setTimeout(() => this.become(kind, dna), 500);
+      tweenTimeout(() => this.become(kind, dna), 500);
     }
   }
   request(other:Cell) {
@@ -275,7 +276,7 @@ class Cell implements HasElem, InGrid {
   die(reason:string, broadcast:bool=true) {
     Msg.pub('cell:death', self, reason);
     this.kind = 'empty';
-    this.$elem.stop().removeClass(CELL_KINDS).addClass('empty');
+    this.$elem.stop().pause().removeClass(CELL_KINDS).addClass('empty');
     resize(this.$elem, EMPTY_W, EMPTY_H);
     if (broadcast) {
       this.broadcastT.set();

@@ -75,39 +75,42 @@ var TEA;
 })(TEA || (TEA = {}));
 var Msg;
 (function (Msg) {
-    var $elem = $({
-    });
-    function sub(topic, cb) {
-        var _this = this;
-        $elem.on(topic, function () {
-            return cb.apply(_this, Array.prototype.slice.call(arguments, 1));
-        });
+    var subs = {
+    };
+    function sub(topic, cb, context) {
+        if (typeof context === "undefined") { context = window; }
+        (subs[topic] = subs[topic] || []).push([
+            cb, 
+            context
+        ]);
     }
     Msg.sub = sub;
     ; ;
-    function one(topic, cb) {
-        var _this = this;
-        $elem.one(topic, function () {
-            return cb.apply(_this, Array.prototype.slice.call(arguments, 1));
-        });
-    }
-    Msg.one = one;
-    ; ;
-    function unsub() {
-        var args = [];
-        for (var _i = 0; _i < (arguments.length - 0); _i++) {
-            args[_i] = arguments[_i + 0];
+    function unsub(topic, cb, context) {
+        if (typeof context === "undefined") { context = window; }
+        if(cb) {
+            var cbs = subs[topic];
+            for(var i = 0; i < cbs.length; ++i) {
+                var cbi = cbs[i];
+                if(cb === cbi[0] && context === cbi[1]) {
+                    cbs.splice(i, 1);
+                    --i;
+                }
+            }
+        } else {
+            delete subs[topic];
         }
-        $elem.off.apply($elem, args);
     }
     Msg.unsub = unsub;
     ; ;
-    function pub() {
+    function pub(topic) {
         var args = [];
-        for (var _i = 0; _i < (arguments.length - 0); _i++) {
-            args[_i] = arguments[_i + 0];
+        for (var _i = 0; _i < (arguments.length - 1); _i++) {
+            args[_i] = arguments[_i + 1];
         }
-        $elem.trigger.apply($elem, args);
+        subs[topic] && subs[topic].forEach(function (cbi) {
+            cbi[0].apply(cbi[1], args);
+        });
     }
     Msg.pub = pub;
     ; ;
@@ -153,12 +156,42 @@ function renewableTimeout(func, delay) {
         run: callRun
     };
 }
+function tweenTimeout(cb, delay) {
+    return (new TWEEN.Tween({
+    }).to({
+    }, delay)).onComplete(cb).start();
+}
 function resize($elem, w, h) {
     var elem = $elem.get(0);
     elem.style.width = w + 'px';
     elem.style.height = h + 'px';
     return $elem;
 }
+jQuery.fn.pause = function () {
+    return this.css('transition-duration', '0s');
+};
+jQuery.fn.transition = function (props, duration, easing, cb) {
+    var trans = [], durStr = (duration | 0) + 'ms';
+    for(var prop in props) {
+        trans.push([
+            prop, 
+            durStr, 
+            easing
+        ].join(' '));
+    }
+    this.css('transition', trans.join(', '));
+    this.css('transition-duration');
+    for(var prop in props) {
+        var val = props[prop];
+        for(var i = 0; i < this.length; ++i) {
+            this[i].style[prop] = (typeof (val) === 'number') ? val + 'px' : val;
+        }
+    }
+    if(cb) {
+        tweenTimeout(cb, duration);
+    }
+    return this;
+};
 var KeyManager = (function () {
     function KeyManager(key) {
         this.key = key || TEA.randomKey();
@@ -379,7 +412,7 @@ var Cell = (function () {
                     return;
                 }
                 var gridPos = grid.name + '-' + r + 'x' + c;
-                Msg.sub('cell:vacant:' + gridPos, $.proxy(_this, 'request'));
+                Msg.sub('cell:vacant:' + gridPos, _this.request, _this);
             });
         });
     };
@@ -407,7 +440,7 @@ var Cell = (function () {
             var startW = EMPTY_W + (FULL_W - EMPTY_W) * fastForward;
             var startH = EMPTY_H + (FULL_H - EMPTY_H) * fastForward;
             resize(this.$elem, startW, startH);
-            this.$elem.animate({
+            this.$elem.transition({
                 width: FULL_W,
                 height: FULL_H
             }, growMs, 'linear');
@@ -447,17 +480,17 @@ var Cell = (function () {
                 left: cpos.left,
                 top: cpos.top
             }).appendTo($cell.parent());
-            $clone.animate({
+            $clone.transition({
                 left: pos.left,
                 top: pos.top,
                 width: EMPTY_W,
                 height: EMPTY_H
-            }, 500, 'swing', function () {
+            }, 500, 'linear', function () {
                 $clone.remove();
                 _this.become(kind, dna);
             });
         } else {
-            setTimeout(function () {
+            tweenTimeout(function () {
                 return _this.become(kind, dna);
             }, 500);
         }
@@ -472,7 +505,7 @@ var Cell = (function () {
         if (typeof broadcast === "undefined") { broadcast = true; }
         Msg.pub('cell:death', self, reason);
         this.kind = 'empty';
-        this.$elem.stop().removeClass(CELL_KINDS).addClass('empty');
+        this.$elem.stop().pause().removeClass(CELL_KINDS).addClass('empty');
         resize(this.$elem, EMPTY_W, EMPTY_H);
         if(broadcast) {
             this.broadcastT.set();

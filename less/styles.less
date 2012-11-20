@@ -81,14 +81,12 @@ a, a:focus, a:hover {
   display: inline-block;
   background: url(/img/blank-cell.png) no-repeat center center;
   .background-size(contain);
+  cursor: pointer;
 
   &:hover {
     border: 2px solid #9f9;
   }
 
-  .cells & {
-    cursor: pointer;
-  }
   /*
   &.brain { background-color: #cfc; }
   &.lung { background-color: #fcc; }
@@ -257,12 +255,16 @@ a, a:focus, a:hover {
           border-spacing: 0;
           table-layout: fixed;
 
+          tr {
+            height: 100%/@cell-rows;
+          }
+
           td {
             margin: 0;
             padding: 0;
             vertical-align: middle;
             text-align: center;
-            width: 100%/@cell-rows;
+            width: 100%/@cell-cols;
           }
         }
       }
