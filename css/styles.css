@@ -985,6 +985,9 @@ to {
   border: 2px solid #f2f2d9;
   background-color: rgba(0, 0, 0, 0.5);
 }
+.cell-info::-webkit-scrollbar-track {
+  background-color: rgba(0, 0, 0, 0.15);
+}
 .cell-info h5 {
   margin: 0;
 }

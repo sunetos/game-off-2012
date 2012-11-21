@@ -237,7 +237,9 @@ class Cell implements HasElem, InGrid {
     $lis.reverse();
     $lis.forEach(($li) => $ol.append($li));
 
+    var info = this.$info.get(0);
     this.$elem.closest('.grid').append(this.$info);
+    info.scrollTop = info.scrollHeight;
   }
   hideInfo() {
     this.infoT.set();

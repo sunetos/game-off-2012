@@ -451,7 +451,9 @@ var Cell = (function () {
         $lis.forEach(function ($li) {
             return $ol.append($li);
         });
+        var info = this.$info.get(0);
         this.$elem.closest('.grid').append(this.$info);
+        info.scrollTop = info.scrollHeight;
     };
     Cell.prototype.hideInfo = function () {
         this.infoT.set();
