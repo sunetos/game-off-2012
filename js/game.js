@@ -176,8 +176,7 @@ function resize($elem, w, h, ml, mt) {
     if(ml && mt) {
         css.push(' margin-left: ', ml, 'px; margin-top: ', mt, 'px;');
     }
-    elem.cssText += css.join('');
-    console.log(elem, css.join(''));
+    elem.style.cssText += css.join('');
     return $elem;
 }
 jQuery.fn.pause = function () {
@@ -195,11 +194,15 @@ jQuery.fn.transition = function (props, duration, easing, cb) {
     }
     this.css('transition', trans.join(', '));
     this.css('transition-duration');
-    for(var prop in props) {
-        var val = props[prop];
-        for(var i = 0; i < this.length; ++i) {
-            this[i].style[prop] = (typeof (val) === 'number') ? val + 'px' : val;
+    for(var i = 0; i < this.length; ++i) {
+        var css = [
+            '; '
+        ];
+        for(var prop in props) {
+            var val = props[prop];
+            css.push(prop, ': ', (typeof (val) === 'number') ? val + 'px' : val, '; ');
         }
+        this[i].style.cssText += css.join('');
     }
     if(cb) {
         tweenTimeout(cb, duration);
@@ -460,8 +463,8 @@ var Cell = (function () {
             this.$img.transition({
                 width: FULL_W,
                 height: FULL_H,
-                marginLeft: -FULL_W / 2,
-                marginTop: -FULL_H / 2
+                'margin-left': -FULL_W / 2,
+                'margin-top': -FULL_H / 2
             }, growMs, 'linear');
         }
         if(this.kind === 'empty') {
@@ -491,7 +494,7 @@ var Cell = (function () {
     Cell.prototype.cloneFrom = function (cell) {
         var _this = this;
         var kind = cell.kind, dna = cell.dna;
-        if(false && this.grid.visible) {
+        if(this.grid.visible) {
             var $cell = cell.$elem, cellElem = $cell.get(0);
             var pos = this.$elem.position(), cpos = $cell.position();
             var $clone = $cell.clone().css({
@@ -529,7 +532,7 @@ var Cell = (function () {
         this.kind = 'empty';
         this.$elem.pause().removeClass(CELL_KINDS).addClass('empty');
         this.$img.pause();
-        resize(this.$img, EMPTY_W, EMPTY_H);
+        resize(this.$img, EMPTY_W, EMPTY_H, -EMPTY_W / 2, -EMPTY_H / 2);
         if(broadcast) {
             this.broadcastT.set();
         }

@@ -80,8 +80,7 @@ function resize($elem:JQuery, w, h, ml?, mt?) {
   var elem = $elem.get(0);
   var css = ['; width: ', w, 'px; height: ', h, 'px;'];
   if (ml && mt) css.push(' margin-left: ', ml, 'px; margin-top: ', mt, 'px;');
-  elem.cssText += css.join('');
-  console.log(elem, css.join(''));
+  elem.style.cssText += css.join('');
   return $elem;
 }
 
@@ -105,11 +104,14 @@ jQuery.fn.transition = function(
   // For some reason it doesn't work until we read a property back.
   this.css('transition-duration');
 
-  for (var prop in props) {
-    var val = props[prop];
-    for (var i = 0; i < this.length; ++i) {
-      this[i].style[prop] = (typeof(val) === 'number') ? val + 'px' : val;
+  for (var i = 0; i < this.length; ++i) {
+    var css = ['; '];
+    for (var prop in props) {
+      var val = props[prop];
+      //this[i].style[prop] = (typeof(val) === 'number') ? val + 'px' : val;
+      css.push(prop, ': ', (typeof(val) === 'number') ? val + 'px' : val, '; ');
     }
+    this[i].style.cssText += css.join('');
   }
 
   if (cb) tweenTimeout(cb, duration);
