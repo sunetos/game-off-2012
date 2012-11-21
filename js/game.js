@@ -166,8 +166,7 @@ function tweenTimeout(cb, delay) {
 }
 function resize($elem, w, h) {
     var elem = $elem.get(0);
-    elem.style.width = w + 'px';
-    elem.style.height = h + 'px';
+    elem.cssText += '; width:' + w + 'px; height:' + h + 'px;';
     return $elem;
 }
 jQuery.fn.pause = function () {
@@ -538,7 +537,7 @@ var CellGrid = (function () {
         this.rows = 1;
         this.cols = 1;
         this.$elem = $(elem);
-        this.$table = $('<table></table>').appendTo(this.$elem);
+        this.$table = $('<table width="100%" height="100%"></table>').appendTo(this.$elem);
         this.rows = Math.max(1, cfg.rows);
         this.cols = Math.max(1, cfg.cols);
         var seedKind = CELL_REGIONS[region.name][index];
@@ -553,8 +552,9 @@ var CellGrid = (function () {
     CellGrid.prototype.fill = function (dna, kind) {
         if (typeof kind === "undefined") { kind = 'empty'; }
         this.clear();
+        var $cg = $('<colgroup></colgroup>').appendTo(this.$table);
         for(var col = 0; col < this.cols; ++col) {
-            var $col = $('<col></col>').attr('width', 100 / this.cols + '%').attr('height', '100.0%').appendTo(this.$table);
+            var $col = $('<col></col>').attr('width', 100 / this.cols + '%').attr('height', '100.0%').appendTo($cg);
         }
         for(var row = 0; row < this.rows; ++row) {
             var $row = $('<tr></tr>').attr('width', '100%').attr('height', 100 / this.rows + '%').appendTo(this.$table);

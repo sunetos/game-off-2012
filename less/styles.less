@@ -82,7 +82,9 @@ a, a:focus, a:hover {
   //border: 2px solid #999;
   //background-color: #ccc;
   display: inline-block;
+  //margin: auto;
   cursor: pointer;
+  overflow: hidden;
 
   &:hover {
     border: 2px solid #9f9;
@@ -90,6 +92,7 @@ a, a:focus, a:hover {
 
   img {
     .gpu;
+    overflow: hidden;
     display: block;
     width: 100%;
     height: 100%;
@@ -102,7 +105,7 @@ a, a:focus, a:hover {
   &.muscle { background-color: #ccc; }
   */
 
-  //.transition(~"opacity 0.5s ease-in");
+  //.transition(~"width 0s linear, height 0s linear, left 0s linear, top 0s linear");
   .opacity(1.0);
 
   .props {
@@ -257,18 +260,22 @@ a, a:focus, a:hover {
       .cells {
         .stretch-abs;
         top: 40px;
+        overflow: hidden;
 
         table {
           .stretch-rel;
           border-spacing: 0;
           table-layout: fixed;
+          overflow: hidden;
 
           tr {
+            overflow: hidden;
             width: 100%;
             height: 100%/@cell-rows;
           }
 
           td {
+            overflow: hidden;
             margin: 0;
             padding: 0;
             vertical-align: middle;

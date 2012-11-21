@@ -307,7 +307,7 @@ class CellGrid implements HasElem {
   constructor(public region:BodyRegion, public index:number, public name:string,
               elem:any, cfg:any) {
     this.$elem = $(elem);
-    this.$table = $('<table></table>').appendTo(this.$elem);
+    this.$table = $('<table width="100%" height="100%"></table>').appendTo(this.$elem);
     this.rows = Math.max(1, cfg.rows);
     this.cols = Math.max(1, cfg.cols);
     var seedKind = CELL_REGIONS[region.name][index];
@@ -319,10 +319,10 @@ class CellGrid implements HasElem {
   }
   fill(dna:DNA, kind:string='empty') {
     this.clear();
+    var $cg = $('<colgroup></colgroup>').appendTo(this.$table);
     for (var col = 0; col < this.cols; ++col) {
       var $col = $('<col></col>').attr('width', 100.0/this.cols + '%')
-                                 .attr('height', '100.0%')
-                                 .appendTo(this.$table);
+                                 .attr('height', '100.0%') .appendTo($cg);
     }
     for (var row = 0; row < this.rows; ++row) {
       var $row = $('<tr></tr>').attr('width', '100%')
