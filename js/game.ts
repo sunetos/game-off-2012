@@ -85,7 +85,6 @@ class DNADisplay implements HasElem {
   $elem: JQuery;
   constructor(public dna:DNA) {
     this.$elem = $('<div class="dna"></div>');
-    console.log(dna.encoded.length);
     for (var i = 0; i < dna.encoded.length; ++i) {
       var cls = (dna.encoded[i] | 0) ? 'one' : 'zero';
       this.$elem.append($('<div></div>').addClass(cls));
@@ -201,12 +200,11 @@ class Cell implements HasElem, InGrid {
     });
   }
   showInfo() {
-    console.log('show-info');
     this.infoT.clear();
     if (this.$info) return;
 
     var left = this.col*this.grid.colW, top = this.row*this.grid.rowH;
-    this.$info = $('<div class="cell-info"></div>').css({top: top});
+    this.$info = $('<div class="cell-info"></div>');
     this.$info.data('target', this.$elem);
     this.$info.append('<h5>DNA History</h5>');
     var $ol = $('<ol></ol>').appendTo(this.$info);
@@ -220,7 +218,7 @@ class Cell implements HasElem, InGrid {
     $lis.reverse();
     $lis.forEach(($li) => $ol.append($li));
 
-    this.$elem.parent().append(this.$info);
+    this.$elem.closest('.grid').append(this.$info);
   }
   hideInfo() {
     this.infoT.set();
