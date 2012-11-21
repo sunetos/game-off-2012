@@ -222,14 +222,17 @@ class Cell implements HasElem, InGrid {
 
     var growSec:number = this.props.grow;
     if (skipSec > growSec) {
-      resize(this.$img, FULL_W, FULL_H);
+      resize(this.$img, FULL_W, FULL_H, -FULL_W/2, -FULL_H/2);
     } else {
       growSec -= skipSec;
       var growMs = growSec*1000;
       var startW = EMPTY_W + (FULL_W - EMPTY_W)*fastForward;
       var startH = EMPTY_H + (FULL_H - EMPTY_H)*fastForward;
-      resize(this.$img, startW, startH);
-      this.$img.transition({width: FULL_W, height: FULL_H}, growMs, 'linear');
+      resize(this.$img, startW, startH, -startW/2, -startH/2);
+      this.$img.transition({
+          width: FULL_W, height: FULL_H,
+          marginLeft: -FULL_W/2, marginTop: -FULL_H/2
+      }, growMs, 'linear');
     }
 
     if (this.kind === 'empty') this.broadcastT.set();
@@ -256,7 +259,7 @@ class Cell implements HasElem, InGrid {
     // Need to capture these now in case the cell dies during timer.
     var kind = cell.kind, dna = cell.dna;
 
-    if (this.grid.visible) {
+    if (false && this.grid.visible) {
       var $cell = cell.$elem, cellElem = $cell.get(0);
       var pos = this.$elem.position(), cpos = $cell.position();
       var $clone = $cell.clone().css({

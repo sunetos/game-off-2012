@@ -76,10 +76,12 @@ function tweenTimeout(cb:Function, delay:number):TWEEN.Tween {
 }
 
 /** jQuery width and height are still buggy with box-sizing, so use css. */
-function resize($elem:JQuery, w, h) {
+function resize($elem:JQuery, w, h, ml?, mt?) {
   var elem = $elem.get(0);
-  elem.style.width = w + 'px';
-  elem.style.height = h + 'px';
+  var css = ['; width: ', w, 'px; height: ', h, 'px;'];
+  if (ml && mt) css.push(' margin-left: ', ml, 'px; margin-top: ', mt, 'px;');
+  elem.cssText += css.join('');
+  console.log(elem, css.join(''));
   return $elem;
 }
 

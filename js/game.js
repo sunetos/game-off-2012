@@ -164,10 +164,20 @@ function tweenTimeout(cb, delay) {
     }).to({
     }, delay)).onComplete(cb).start();
 }
-function resize($elem, w, h) {
+function resize($elem, w, h, ml, mt) {
     var elem = $elem.get(0);
-    elem.style.width = w + 'px';
-    elem.style.height = h + 'px';
+    var css = [
+        '; width: ', 
+        w, 
+        'px; height: ', 
+        h, 
+        'px;'
+    ];
+    if(ml && mt) {
+        css.push(' margin-left: ', ml, 'px; margin-top: ', mt, 'px;');
+    }
+    elem.cssText += css.join('');
+    console.log(elem, css.join(''));
     return $elem;
 }
 jQuery.fn.pause = function () {
@@ -440,16 +450,18 @@ var Cell = (function () {
         this.deathT.start();
         var growSec = this.props.grow;
         if(skipSec > growSec) {
-            resize(this.$img, FULL_W, FULL_H);
+            resize(this.$img, FULL_W, FULL_H, -FULL_W / 2, -FULL_H / 2);
         } else {
             growSec -= skipSec;
             var growMs = growSec * 1000;
             var startW = EMPTY_W + (FULL_W - EMPTY_W) * fastForward;
             var startH = EMPTY_H + (FULL_H - EMPTY_H) * fastForward;
-            resize(this.$img, startW, startH);
+            resize(this.$img, startW, startH, -startW / 2, -startH / 2);
             this.$img.transition({
                 width: FULL_W,
-                height: FULL_H
+                height: FULL_H,
+                marginLeft: -FULL_W / 2,
+                marginTop: -FULL_H / 2
             }, growMs, 'linear');
         }
         if(this.kind === 'empty') {
@@ -479,7 +491,7 @@ var Cell = (function () {
     Cell.prototype.cloneFrom = function (cell) {
         var _this = this;
         var kind = cell.kind, dna = cell.dna;
-        if(this.grid.visible) {
+        if(false && this.grid.visible) {
             var $cell = cell.$elem, cellElem = $cell.get(0);
             var pos = this.$elem.position(), cpos = $cell.position();
             var $clone = $cell.clone().css({
