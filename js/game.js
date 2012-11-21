@@ -496,20 +496,23 @@ var Cell = (function () {
         var kind = cell.kind, dna = cell.dna;
         if(this.grid.visible) {
             var $cell = cell.$elem, cellElem = $cell.get(0);
-            var pos = this.$elem.position(), cpos = $cell.position();
+            var left = this.col * this.grid.colW, top = this.row * this.grid.rowH;
+            var cleft = cell.col * cell.grid.colW, ctop = cell.row * cell.grid.rowH;
             var $clone = $cell.clone().css({
                 position: 'absolute',
-                left: cpos.left,
-                top: cpos.top
+                left: cleft,
+                top: ctop
             }).appendTo($cell.parent());
-            var $img = $clone.children('img');
+            var $img = $clone.find('img');
             $img.transition({
                 width: EMPTY_W,
-                height: EMPTY_H
+                height: EMPTY_H,
+                'margin-left': EMPTY_W / 2,
+                'margin-top': EMPTY_H / 2
             }, 500);
             $clone.transition({
-                left: pos.left,
-                top: pos.top
+                left: left,
+                top: top
             }, 500, 'linear', function () {
                 $clone.remove();
                 _this.become(kind, dna);
@@ -557,13 +560,26 @@ var CellGrid = (function () {
         this.cells = [];
         this.rows = 1;
         this.cols = 1;
+        this.colW = 1;
+        this.rowH = 1;
         this.$elem = $(elem);
         this.$table = $('<div class="table"></div>').appendTo(this.$elem);
         this.rows = Math.max(1, cfg.rows);
         this.cols = Math.max(1, cfg.cols);
+        $(window).on('resize hashchange', proxy(this, 'resize'));
+        $(document).ready(proxy(this, 'resize'));
         var seedKind = CELL_REGIONS[region.name][index];
         this.fill(cfg.rootDna, seedKind);
     }
+    CellGrid.prototype.resize = function () {
+        var _this = this;
+        setTimeout(function () {
+            if(_this.visible) {
+                _this.rowH = _this.$elem.outerHeight() / _this.rows;
+                _this.colW = _this.$elem.outerWidth() / _this.cols;
+            }
+        }, 1);
+    };
     CellGrid.prototype.clear = function () {
         this.cells.forEach(function (cell) {
             cell.die('clear');

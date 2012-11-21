@@ -261,16 +261,15 @@ class Cell implements HasElem, InGrid {
 
     if (this.grid.visible) {
       var $cell = cell.$elem, cellElem = $cell.get(0);
-      var pos = this.$elem.position(), cpos = $cell.position();
+      var left = this.col*this.grid.colW, top = this.row*this.grid.rowH;
+      var cleft = cell.col*cell.grid.colW, ctop = cell.row*cell.grid.rowH;
       var $clone = $cell.clone().css({
-          position: 'absolute', left: cpos.left, top: cpos.top
+          position: 'absolute', left: cleft, top: ctop
       }).appendTo($cell.parent());
-      var $img = $clone.children('img');
-      $img.transition({width: EMPTY_W, height: EMPTY_H}, 500);
-      $clone.transition({
-          left: pos.left,
-          top: pos.top,
-      }, 500, 'linear', () => {
+      var $img = $clone.find('img');
+      $img.transition({width: EMPTY_W, height: EMPTY_H,
+                       'margin-left': EMPTY_W/2, 'margin-top': EMPTY_H/2}, 500);
+      $clone.transition({left: left, top: top, }, 500, 'linear', () => {
         $clone.remove();
         this.become(kind, dna);
       });
@@ -311,14 +310,26 @@ class CellGrid implements HasElem {
   public cells:Cell[] = [];
   rows = 1;
   cols = 1;
+  colW = 1;
+  rowH = 1;
   constructor(public region:BodyRegion, public index:number, public name:string,
               elem:any, cfg:any) {
     this.$elem = $(elem);
     this.$table = $('<div class="table"></div>').appendTo(this.$elem);
     this.rows = Math.max(1, cfg.rows);
     this.cols = Math.max(1, cfg.cols);
+    $(window).on('resize hashchange', proxy(this, 'resize'));
+    $(document).ready(proxy(this, 'resize'));
     var seedKind = CELL_REGIONS[region.name][index];
     this.fill(cfg.rootDna, seedKind);
+  }
+  resize() {
+    setTimeout(() => {
+      if (this.visible) {
+        this.rowH = this.$elem.outerHeight()/this.rows;
+        this.colW = this.$elem.outerWidth()/this.cols;
+      }
+    }, 1);
   }
   clear() {
     this.cells.forEach((cell) => { cell.die('clear'); });

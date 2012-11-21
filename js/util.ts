@@ -108,7 +108,6 @@ jQuery.fn.transition = function(
     var css = ['; '];
     for (var prop in props) {
       var val = props[prop];
-      //this[i].style[prop] = (typeof(val) === 'number') ? val + 'px' : val;
       css.push(prop, ': ', (typeof(val) === 'number') ? val + 'px' : val, '; ');
     }
     this[i].style.cssText += css.join('');
