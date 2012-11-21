@@ -86,17 +86,48 @@ function resize($elem:JQuery, w, h, ml?, mt?) {
 
 interface JQuery {
   pause(): JQuery;
-  transition(props:any, duration:number, easing:string, cb?:Function): JQuery;
 }
 
 jQuery.fn.pause = function():JQuery {
   return this.css('transition-duration', '0s');
 }
 
+/** From jQuery 1.8 source. */
+interface JQueryStatic {
+  camelCase(val:string):string;
+}
+var vendors = ['ms', 'moz', 'webkit', 'o'];
+var cssProps = {};
+function vendorPropName(style, name) {
+  if (name in style) return name;
+
+  // check for vendor prefixed names
+  var origName = name, i = vendors.length;
+
+  while (i--) {
+    name = vendors[i] + '-' + origName;
+    if (name in style) return name;
+  }
+
+  return origName;
+}
+
 /** Attempting to get better performance than jQuery.animate.enhanced. */
+interface JQuery {
+  transition(props:any, duration:number, easing?:string, cb?:Function): JQuery;
+}
+/*
 jQuery.fn.transition = function(
     props:any, duration:number, easing:string='linear', cb?:Function):JQuery {
   var trans = [], durStr = (duration | 0) + 'ms';
+  var fixedProps = {}, style = this[0].style;
+  for (var origProp in props) {
+    var prop = origProp;
+    prop = cssProps[prop] || (cssProps[props] = vendorPropName(style, prop));
+    fixedProps[prop] = props[origProp];
+  }
+  props = fixedProps;
+
   for (var prop in props) {
     trans.push([prop, durStr, easing].join(' '));
   }
@@ -106,14 +137,16 @@ jQuery.fn.transition = function(
 
   for (var i = 0; i < this.length; ++i) {
     var css = ['; '];
+    var style = this[i].style;
     for (var prop in props) {
       var val = props[prop];
-      css.push(prop, ': ', (typeof(val) === 'number') ? val + 'px' : val, '; ');
+      css.push(prop, ': ', (typeof(val) === 'number' && !$.cssNumber[prop])
+                           ? val + 'px' : val, '; ');
     }
-    this[i].style.cssText += css.join('');
+    style.cssText += css.join('');
   }
 
   if (cb) tweenTimeout(cb, duration);
   return this;
 }
-
+*/

@@ -182,33 +182,27 @@ function resize($elem, w, h, ml, mt) {
 jQuery.fn.pause = function () {
     return this.css('transition-duration', '0s');
 };
-jQuery.fn.transition = function (props, duration, easing, cb) {
-    if (typeof easing === "undefined") { easing = 'linear'; }
-    var trans = [], durStr = (duration | 0) + 'ms';
-    for(var prop in props) {
-        trans.push([
-            prop, 
-            durStr, 
-            easing
-        ].join(' '));
-    }
-    this.css('transition', trans.join(', '));
-    this.css('transition-duration');
-    for(var i = 0; i < this.length; ++i) {
-        var css = [
-            '; '
-        ];
-        for(var prop in props) {
-            var val = props[prop];
-            css.push(prop, ': ', (typeof (val) === 'number') ? val + 'px' : val, '; ');
-        }
-        this[i].style.cssText += css.join('');
-    }
-    if(cb) {
-        tweenTimeout(cb, duration);
-    }
-    return this;
+var vendors = [
+    'ms', 
+    'moz', 
+    'webkit', 
+    'o'
+];
+var cssProps = {
 };
+function vendorPropName(style, name) {
+    if(name in style) {
+        return name;
+    }
+    var origName = name, i = vendors.length;
+    while(i--) {
+        name = vendors[i] + '-' + origName;
+        if(name in style) {
+            return name;
+        }
+    }
+    return origName;
+}
 var KeyManager = (function () {
     function KeyManager(key) {
         this.key = key || TEA.randomKey();
@@ -384,7 +378,7 @@ var CELL_REGIONS = {
 var CELL_BROADCAST = 500;
 var CELL_IMG = '/img/blank-cell.png';
 var FULL_W = 40, FULL_H = 40;
-var EMPTY_W = 5, EMPTY_H = 5;
+var EMPTY_W = 4, EMPTY_H = 4, EMPTY_Z = 0.1, EMPTY_ZS = 'scale(0.1)';
 var Cell = (function () {
     function Cell(dna, kind) {
         this.dna = dna;
@@ -452,19 +446,16 @@ var Cell = (function () {
         }, lifeMs).onComplete(proxy(this, 'die'));
         this.deathT.start();
         var growSec = this.props.grow;
+        this.$img.css('rotate3d', '0, 0, 0, 0');
         if(skipSec > growSec) {
-            resize(this.$img, FULL_W, FULL_H, -FULL_W / 2, -FULL_H / 2);
+            this.$img.css('scale', 1);
         } else {
             growSec -= skipSec;
             var growMs = growSec * 1000;
-            var startW = EMPTY_W + (FULL_W - EMPTY_W) * fastForward;
-            var startH = EMPTY_H + (FULL_H - EMPTY_H) * fastForward;
-            resize(this.$img, startW, startH, -startW / 2, -startH / 2);
+            var startZ = EMPTY_Z + (1 - EMPTY_Z) * fastForward;
+            this.$img.css('scale', startZ);
             this.$img.transition({
-                width: FULL_W,
-                height: FULL_H,
-                'margin-left': -FULL_W / 2,
-                'margin-top': -FULL_H / 2
+                scale: 1
             }, growMs, 'linear');
         }
         if(this.kind === 'empty') {
@@ -501,15 +492,13 @@ var Cell = (function () {
             var $clone = $cell.clone().css({
                 position: 'absolute',
                 left: cleft,
-                top: ctop
+                top: ctop,
+                rotate3d: '0, 0, 0, 0'
             }).appendTo($cell.parent());
-            var $img = $clone.find('img');
+            var $img = $clone.find('img').pause();
             $img.transition({
-                width: EMPTY_W,
-                height: EMPTY_H,
-                'margin-left': EMPTY_W / 2,
-                'margin-top': EMPTY_H / 2
-            }, 500);
+                scale: EMPTY_Z
+            }, 500, 'linear');
             $clone.transition({
                 left: left,
                 top: top
@@ -535,7 +524,7 @@ var Cell = (function () {
         this.kind = 'empty';
         this.$elem.pause().removeClass(CELL_KINDS).addClass('empty');
         this.$img.pause();
-        resize(this.$img, EMPTY_W, EMPTY_H, -EMPTY_W / 2, -EMPTY_H / 2);
+        this.$img.css('scale', EMPTY_Z);
         if(broadcast) {
             this.broadcastT.set();
         }

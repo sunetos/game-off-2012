@@ -5,7 +5,7 @@ $(document).on('click', '[href^="#"]', function(e) {
 });
 
 $(function() {
-  if ($.support.transition) $.fn.animate = $.fn.transition;
+  //if ($.support.transition) $.fn.animate = $.fn.transition;
 
   Msg.sub('game:init', function() {
     console.log('game:init');

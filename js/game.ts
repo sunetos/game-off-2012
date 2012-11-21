@@ -150,7 +150,7 @@ var CELL_REGIONS = {
 var CELL_BROADCAST = 500;  // ms
 var CELL_IMG = '/img/blank-cell.png';
 var FULL_W = 40, FULL_H = 40;
-var EMPTY_W = 5, EMPTY_H = 5;
+var EMPTY_W = 4, EMPTY_H = 4, EMPTY_Z = 0.1, EMPTY_ZS = 'scale(0.1)';
 
 
 /** Where most of the magic happens. */
@@ -221,18 +221,15 @@ class Cell implements HasElem, InGrid {
     this.deathT.start();
 
     var growSec:number = this.props.grow;
+    this.$img.css('rotate3d', '0, 0, 0, 0');
     if (skipSec > growSec) {
-      resize(this.$img, FULL_W, FULL_H, -FULL_W/2, -FULL_H/2);
+      this.$img.css('scale', 1.0);
     } else {
       growSec -= skipSec;
       var growMs = growSec*1000;
-      var startW = EMPTY_W + (FULL_W - EMPTY_W)*fastForward;
-      var startH = EMPTY_H + (FULL_H - EMPTY_H)*fastForward;
-      resize(this.$img, startW, startH, -startW/2, -startH/2);
-      this.$img.transition({
-          width: FULL_W, height: FULL_H,
-          'margin-left': -FULL_W/2, 'margin-top': -FULL_H/2
-      }, growMs, 'linear');
+      var startZ = EMPTY_Z + (1.0 - EMPTY_Z)*fastForward;
+      this.$img.css('scale', startZ);
+      this.$img.transition({scale: 1.0}, growMs, 'linear');
     }
 
     if (this.kind === 'empty') this.broadcastT.set();
@@ -264,12 +261,11 @@ class Cell implements HasElem, InGrid {
       var left = this.col*this.grid.colW, top = this.row*this.grid.rowH;
       var cleft = cell.col*cell.grid.colW, ctop = cell.row*cell.grid.rowH;
       var $clone = $cell.clone().css({
-          position: 'absolute', left: cleft, top: ctop
+          position: 'absolute', left: cleft, top: ctop, rotate3d: '0, 0, 0, 0'
       }).appendTo($cell.parent());
-      var $img = $clone.find('img');
-      $img.transition({width: EMPTY_W, height: EMPTY_H,
-                       'margin-left': EMPTY_W/2, 'margin-top': EMPTY_H/2}, 500);
-      $clone.transition({left: left, top: top, }, 500, 'linear', () => {
+      var $img = $clone.find('img').pause();
+      $img.transition({scale: EMPTY_Z}, 500, 'linear');
+      $clone.transition({left: left, top: top}, 500, 'linear', () => {
         $clone.remove();
         this.become(kind, dna);
       });
@@ -286,7 +282,8 @@ class Cell implements HasElem, InGrid {
     this.kind = 'empty';
     this.$elem.pause().removeClass(CELL_KINDS).addClass('empty');
     this.$img.pause();
-    resize(this.$img, EMPTY_W, EMPTY_H, -EMPTY_W/2, -EMPTY_H/2);
+    //resize(this.$img, EMPTY_W, EMPTY_H, -EMPTY_W/2, -EMPTY_H/2);
+    this.$img.css('scale', EMPTY_Z);
     if (broadcast) {
       this.broadcastT.set();
     }
