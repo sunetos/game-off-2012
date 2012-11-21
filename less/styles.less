@@ -53,6 +53,13 @@ a, a:focus, a:hover {
   }
 }
 
+.table {
+  display: table;
+  table-layout: fixed;
+  width: 100%;
+  height: 100%;
+}
+
 .from(bg-vert-top) { background-position: 0 0; }
 .to(bg-vert-bottom) { background-position: 0 100%; }
 .keyframes(scroll-bg-vert, bg-vert-top, bg-vert-bottom);
@@ -81,18 +88,25 @@ a, a:focus, a:hover {
   .box-sizing(border-box);
   //border: 2px solid #999;
   //background-color: #ccc;
-  display: inline-block;
+  position: absolute;
   cursor: pointer;
+  width: 100%/@cell-cols;
+  height: 100%/@cell-rows;
 
   &:hover {
     border: 2px solid #9f9;
   }
 
-  img {
-    .gpu;
-    display: block;
+  .body {
+    display: table-cell;
+    vertical-align: middle;
+    text-align: center;
     width: 100%;
     height: 100%;
+  }
+  img {
+    .gpu;
+    display: inline-block;
   }
 
   /*
@@ -182,6 +196,7 @@ a, a:focus, a:hover {
     .legs { height: 34%; }
   }
 }
+
 .game {
   .stretch-rel;
   .map {
@@ -209,7 +224,7 @@ a, a:focus, a:hover {
     }
   }
 
-  .body {
+  > .body {
     .box-sizing(border-box);
     position: absolute;
     width: 70%;

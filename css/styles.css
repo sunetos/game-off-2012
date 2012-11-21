@@ -767,6 +767,12 @@ a:hover {
 .styles section.big {
   min-height: 100px;
 }
+.table {
+  display: table;
+  table-layout: fixed;
+  width: 100%;
+  height: 100%;
+}
 @-moz-keyframes scroll-bg-vert {
 from {
   background-position: 0 0;
@@ -865,8 +871,10 @@ to {
   -webkit-box-sizing: border-box;
   -moz-box-sizing: border-box;
   box-sizing: border-box;
-  display: inline-block;
+  position: absolute;
   cursor: pointer;
+  width: 16.666666666666668%;
+  height: 16.666666666666668%;
   /*
   &.brain { background-color: #cfc; }
   &.lung { background-color: #fcc; }
@@ -882,15 +890,20 @@ to {
 .cell:hover {
   border: 2px solid #9f9;
 }
+.cell .body {
+  display: table-cell;
+  vertical-align: middle;
+  text-align: center;
+  width: 100%;
+  height: 100%;
+}
 .cell img {
   -webkit-transform: translateZ(0);
   -moz-transform: translateZ(0);
   -o-transform: translateZ(0);
   -ms-transform: translateZ(0);
   transform: translateZ(0);
-  display: block;
-  width: 100%;
-  height: 100%;
+  display: inline-block;
 }
 .cell .props {
   position: absolute;
@@ -1068,7 +1081,7 @@ to {
   color: #ddd;
   margin: 5px;
 }
-.game .body {
+.game > .body {
   -webkit-box-sizing: border-box;
   -moz-box-sizing: border-box;
   box-sizing: border-box;

@@ -377,7 +377,8 @@ var Cell = (function () {
         this.dna = dna;
         this.kind = kind;
         this.$elem = $('<div class="cell"></div>').addClass(kind);
-        this.$img = $('<img/>').attr('src', CELL_IMG).appendTo(this.$elem);
+        this.$body = $('<div class="body" width="100%" height="100%"></div>').appendTo(this.$elem);
+        this.$img = $('<img alt=""/>').attr('src', CELL_IMG).appendTo(this.$body);
         this.row = this.col = 0;
         this.broadcastT = renewableTimeout(proxy(this, 'broadcast'), CELL_BROADCAST);
         if(kind === 'empty') {
@@ -439,14 +440,14 @@ var Cell = (function () {
         this.deathT.start();
         var growSec = this.props.grow;
         if(skipSec > growSec) {
-            resize(this.$elem, FULL_W, FULL_H);
+            resize(this.$img, FULL_W, FULL_H);
         } else {
             growSec -= skipSec;
             var growMs = growSec * 1000;
             var startW = EMPTY_W + (FULL_W - EMPTY_W) * fastForward;
             var startH = EMPTY_H + (FULL_H - EMPTY_H) * fastForward;
-            resize(this.$elem, startW, startH);
-            this.$elem.transition({
+            resize(this.$img, startW, startH);
+            this.$img.transition({
                 width: FULL_W,
                 height: FULL_H
             }, growMs, 'linear');
@@ -486,11 +487,14 @@ var Cell = (function () {
                 left: cpos.left,
                 top: cpos.top
             }).appendTo($cell.parent());
-            $clone.transition({
-                left: pos.left,
-                top: pos.top,
+            var $img = $clone.children('img');
+            $img.transition({
                 width: EMPTY_W,
                 height: EMPTY_H
+            }, 500);
+            $clone.transition({
+                left: pos.left,
+                top: pos.top
             }, 500, 'linear', function () {
                 $clone.remove();
                 _this.become(kind, dna);
@@ -511,8 +515,9 @@ var Cell = (function () {
         if (typeof broadcast === "undefined") { broadcast = true; }
         Msg.pub('cell:death', self, reason);
         this.kind = 'empty';
-        this.$elem.stop().pause().removeClass(CELL_KINDS).addClass('empty');
-        resize(this.$elem, EMPTY_W, EMPTY_H);
+        this.$elem.pause().removeClass(CELL_KINDS).addClass('empty');
+        this.$img.pause();
+        resize(this.$img, EMPTY_W, EMPTY_H);
         if(broadcast) {
             this.broadcastT.set();
         }
@@ -538,7 +543,7 @@ var CellGrid = (function () {
         this.rows = 1;
         this.cols = 1;
         this.$elem = $(elem);
-        this.$table = $('<table></table>').appendTo(this.$elem);
+        this.$table = $('<div class="table"></div>').appendTo(this.$elem);
         this.rows = Math.max(1, cfg.rows);
         this.cols = Math.max(1, cfg.cols);
         var seedKind = CELL_REGIONS[region.name][index];
@@ -553,16 +558,15 @@ var CellGrid = (function () {
     CellGrid.prototype.fill = function (dna, kind) {
         if (typeof kind === "undefined") { kind = 'empty'; }
         this.clear();
-        for(var col = 0; col < this.cols; ++col) {
-            var $col = $('<col></col>').attr('width', 100 / this.cols + '%').attr('height', '100.0%').appendTo(this.$table);
-        }
+        var w = 100 / this.cols, h = 100 / this.rows;
         for(var row = 0; row < this.rows; ++row) {
-            var $row = $('<tr></tr>').attr('width', '100%').attr('height', 100 / this.rows + '%').appendTo(this.$table);
             for(var col = 0; col < this.cols; ++col) {
-                var $col = $('<td></td>').attr('width', 100 / this.cols + '%').attr('height', 100 / this.rows + '%');
                 var cell = new Cell(dna, kind);
+                cell.$elem.css({
+                    left: col * w + '%',
+                    top: row * h + '%'
+                }).appendTo(this.$table);
                 cell.addToGrid(this, row, col);
-                $col.append(cell.$elem).appendTo($row);
                 this.cells.push(cell);
                 var fastFwd = Random.scale(0.8);
                 cell.birth(fastFwd);
