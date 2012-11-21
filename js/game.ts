@@ -148,6 +148,7 @@ var CELL_REGIONS = {
     'legs': ['muscle', 'bone'],
 };
 var CELL_BROADCAST = 500;  // ms
+var CELL_IMG = '/img/blank-cell.png';
 var FULL_W = 40, FULL_H = 40;
 var EMPTY_W = 5, EMPTY_H = 5;
 
@@ -155,6 +156,7 @@ var EMPTY_W = 5, EMPTY_H = 5;
 /** Where most of the magic happens. */
 class Cell implements HasElem, InGrid {
   $elem: JQuery;
+  $img: JQuery;
   $props: JQuery;
   grid: CellGrid;
   row: number;
@@ -167,8 +169,9 @@ class Cell implements HasElem, InGrid {
 
   constructor(public dna:DNA, public kind:string) {
     this.$elem = $('<div class="cell"></div>').addClass(kind);
+    this.$img = $('<img/>').attr('src', CELL_IMG).appendTo(this.$elem);
     this.row = this.col = 0;
-    this.broadcastT = renewableTimeout($.proxy(this, 'broadcast'), CELL_BROADCAST);
+    this.broadcastT = renewableTimeout(proxy(this, 'broadcast'), CELL_BROADCAST);
     if (kind === 'empty') {
       this.props = new CellProperties();
     } else {
@@ -211,7 +214,7 @@ class Cell implements HasElem, InGrid {
     }
     var lifeMs = lifeSec*1000;
     this.deathT = new TWEEN.Tween({life: this.props.apoptosis})
-    this.deathT.to({life: 0}, lifeMs).onComplete($.proxy(this, 'die'));
+    this.deathT.to({life: 0}, lifeMs).onComplete(proxy(this, 'die'));
     this.deathT.start();
 
     var growSec:number = this.props.grow;
@@ -316,13 +319,21 @@ class CellGrid implements HasElem {
   }
   fill(dna:DNA, kind:string='empty') {
     this.clear();
+    for (var col = 0; col < this.cols; ++col) {
+      var $col = $('<col></col>').attr('width', 100.0/this.cols + '%')
+                                 .attr('height', '100.0%')
+                                 .appendTo(this.$table);
+    }
     for (var row = 0; row < this.rows; ++row) {
-      var $row = $('<tr></tr>').appendTo(this.$table);
+      var $row = $('<tr></tr>').attr('width', '100%')
+                               .attr('height', 100.0/this.rows + '%')
+                               .appendTo(this.$table);
       for (var col = 0; col < this.cols; ++col) {
-        var $col = $('<td></td>').appendTo($row);
+        var $col = $('<td></td>').attr('width', 100.0/this.cols + '%')
+                                 .attr('height', 100.0/this.rows + '%');
         var cell = new Cell(dna, kind);
         cell.addToGrid(this, row, col);
-        $col.append(cell.$elem);
+        $col.append(cell.$elem).appendTo($row);
         this.cells.push(cell);
         var fastFwd = Random.scale(0.8);
         cell.birth(fastFwd);

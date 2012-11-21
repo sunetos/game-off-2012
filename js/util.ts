@@ -43,6 +43,10 @@ module Random {
   }
 }
 
+function proxy(context:any, prop:string):Function {
+  //return $.proxy(context, prop);
+  return context[prop].bind(context);
+}
 
 /** Automate boilerplate for things like callbacks after stopping typing. */
 function renewableTimeout(func, delay) {
@@ -90,7 +94,7 @@ jQuery.fn.pause = function():JQuery {
 
 /** Attempting to get better performance than jQuery.animate.enhanced. */
 jQuery.fn.transition = function(
-    props:any, duration:number, easing:string, cb?:Function):JQuery {
+    props:any, duration:number, easing:string='linear', cb?:Function):JQuery {
   var trans = [], durStr = (duration | 0) + 'ms';
   for (var prop in props) {
     trans.push([prop, durStr, easing].join(' '));

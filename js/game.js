@@ -131,6 +131,9 @@ var Random;
     }
     Random.scale = scale;
 })(Random || (Random = {}));
+function proxy(context, prop) {
+    return context[prop].bind(context);
+}
 function renewableTimeout(func, delay) {
     var callT = null, callI = delay;
     function callClear() {
@@ -171,6 +174,7 @@ jQuery.fn.pause = function () {
     return this.css('transition-duration', '0s');
 };
 jQuery.fn.transition = function (props, duration, easing, cb) {
+    if (typeof easing === "undefined") { easing = 'linear'; }
     var trans = [], durStr = (duration | 0) + 'ms';
     for(var prop in props) {
         trans.push([
@@ -365,6 +369,7 @@ var CELL_REGIONS = {
     ]
 };
 var CELL_BROADCAST = 500;
+var CELL_IMG = '/img/blank-cell.png';
 var FULL_W = 40, FULL_H = 40;
 var EMPTY_W = 5, EMPTY_H = 5;
 var Cell = (function () {
@@ -372,8 +377,9 @@ var Cell = (function () {
         this.dna = dna;
         this.kind = kind;
         this.$elem = $('<div class="cell"></div>').addClass(kind);
+        this.$img = $('<img/>').attr('src', CELL_IMG).appendTo(this.$elem);
         this.row = this.col = 0;
-        this.broadcastT = renewableTimeout($.proxy(this, 'broadcast'), CELL_BROADCAST);
+        this.broadcastT = renewableTimeout(proxy(this, 'broadcast'), CELL_BROADCAST);
         if(kind === 'empty') {
             this.props = new CellProperties();
         } else {
@@ -429,7 +435,7 @@ var Cell = (function () {
         });
         this.deathT.to({
             life: 0
-        }, lifeMs).onComplete($.proxy(this, 'die'));
+        }, lifeMs).onComplete(proxy(this, 'die'));
         this.deathT.start();
         var growSec = this.props.grow;
         if(skipSec > growSec) {
@@ -547,13 +553,16 @@ var CellGrid = (function () {
     CellGrid.prototype.fill = function (dna, kind) {
         if (typeof kind === "undefined") { kind = 'empty'; }
         this.clear();
+        for(var col = 0; col < this.cols; ++col) {
+            var $col = $('<col></col>').attr('width', 100 / this.cols + '%').attr('height', '100.0%').appendTo(this.$table);
+        }
         for(var row = 0; row < this.rows; ++row) {
-            var $row = $('<tr></tr>').appendTo(this.$table);
+            var $row = $('<tr></tr>').attr('width', '100%').attr('height', 100 / this.rows + '%').appendTo(this.$table);
             for(var col = 0; col < this.cols; ++col) {
-                var $col = $('<td></td>').appendTo($row);
+                var $col = $('<td></td>').attr('width', 100 / this.cols + '%').attr('height', 100 / this.rows + '%');
                 var cell = new Cell(dna, kind);
                 cell.addToGrid(this, row, col);
-                $col.append(cell.$elem);
+                $col.append(cell.$elem).appendTo($row);
                 this.cells.push(cell);
                 var fastFwd = Random.scale(0.8);
                 cell.birth(fastFwd);

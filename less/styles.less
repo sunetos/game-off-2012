@@ -24,6 +24,9 @@ body {
 a, a:focus, a:hover {
   outline: 0;
 }
+#preload {
+  display: none;
+}
 
 #logo {
   margin: 0;
@@ -79,12 +82,17 @@ a, a:focus, a:hover {
   //border: 2px solid #999;
   //background-color: #ccc;
   display: inline-block;
-  background: url(/img/blank-cell.png) no-repeat center center;
-  .background-size(contain);
   cursor: pointer;
 
   &:hover {
     border: 2px solid #9f9;
+  }
+
+  img {
+    .gpu;
+    display: block;
+    width: 100%;
+    height: 100%;
   }
 
   /*
@@ -256,6 +264,7 @@ a, a:focus, a:hover {
           table-layout: fixed;
 
           tr {
+            width: 100%;
             height: 100%/@cell-rows;
           }
 
@@ -265,6 +274,7 @@ a, a:focus, a:hover {
             vertical-align: middle;
             text-align: center;
             width: 100%/@cell-cols;
+            height: 100%/@cell-rows;
           }
         }
       }
