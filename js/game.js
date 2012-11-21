@@ -282,6 +282,7 @@ var DNADisplay = (function () {
     function DNADisplay(dna) {
         this.dna = dna;
         this.$elem = $('<div class="dna"></div>');
+        console.log(dna.encoded.length);
         for(var i = 0; i < dna.encoded.length; ++i) {
             var cls = (dna.encoded[i] | 0) ? 'one' : 'zero';
             this.$elem.append($('<div></div>').addClass(cls));
@@ -383,6 +384,7 @@ var Cell = (function () {
     function Cell(dna, kind) {
         this.dna = dna;
         this.kind = kind;
+        var _this = this;
         this.$elem = $('<div class="cell"></div>').addClass(kind);
         this.$body = $('<div class="body" width="100%" height="100%"></div>').appendTo(this.$elem);
         this.$img = $('<img alt=""/>').attr('src', CELL_IMG).appendTo(this.$body);
@@ -394,6 +396,12 @@ var Cell = (function () {
             this.props = CELL_DEFS[kind].props.copy();
             this.props.scale(dna);
         }
+        this.$elem.on('show-info', proxy(this, 'showInfo'));
+        this.$elem.on('hide-info', proxy(this, 'hideInfo'));
+        this.infoT = renewableTimeout(function () {
+            _this.$info.remove();
+            _this.$info = null;
+        }, 250);
     }
     Cell.prototype.setPropElems = function () {
         var _this = this;
@@ -404,6 +412,34 @@ var Cell = (function () {
             }
             $prop.height(_this.props[prop]);
         });
+    };
+    Cell.prototype.showInfo = function () {
+        console.log('show-info');
+        this.infoT.clear();
+        if(this.$info) {
+            return;
+        }
+        var left = this.col * this.grid.colW, top = this.row * this.grid.rowH;
+        this.$info = $('<div class="cell-info"></div>').css({
+            top: top
+        });
+        this.$info.data('target', this.$elem);
+        this.$info.append('<h5>DNA History</h5>');
+        var $ol = $('<ol></ol>').appendTo(this.$info);
+        var dna = this.dna, $lis = [];
+        while(dna) {
+            var dnaDisplay = new DNADisplay(dna);
+            $lis.push($('<li></li>').append(dnaDisplay.$elem));
+            dna = dna.ancestor;
+        }
+        $lis.reverse();
+        $lis.forEach(function ($li) {
+            return $ol.append($li);
+        });
+        this.$elem.parent().append(this.$info);
+    };
+    Cell.prototype.hideInfo = function () {
+        this.infoT.set();
     };
     Cell.prototype.addToGrid = function (grid, row, col) {
         var _this = this;

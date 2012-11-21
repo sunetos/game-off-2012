@@ -4,6 +4,11 @@ $(document).on('click', '[href^="#"]', function(e) {
   $.bbq.pushState($(this).attr('href'), 0);
 });
 
+$(document).on('mouseenter mouseleave', '.cell, .cell-info', function(e) {
+  var $target = $(this).data('target') || $(this);
+  $target.trigger((e.type === 'mouseenter') ? 'show-info' : 'hide-info');
+});
+
 $(function() {
   //if ($.support.transition) $.fn.animate = $.fn.transition;
 

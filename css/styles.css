@@ -870,11 +870,11 @@ to {
   -webkit-box-sizing: border-box;
   -moz-box-sizing: border-box;
   box-sizing: border-box;
+  border: 2px solid transparent;
   position: absolute;
   cursor: pointer;
   width: 16.666666666666668%;
   height: 16.666666666666668%;
-  overflow: hidden;
   /*
   &.brain { background-color: #cfc; }
   &.lung { background-color: #fcc; }
@@ -954,6 +954,47 @@ to {
 }
 .cell.empty .props {
   display: none;
+}
+.cell-info {
+  -webkit-transform: translateZ(0);
+  -moz-transform: translateZ(0);
+  -o-transform: translateZ(0);
+  -ms-transform: translateZ(0);
+  transform: translateZ(0);
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  z-index: 5;
+  background-color: #f2f2d9;
+  border: 1px solid black;
+  padding: 0.5em;
+}
+.cell-info h5 {
+  margin: 0;
+}
+.cell-info ol {
+  padding: 0 0 0 16px;
+  margin: 0;
+  font-size: 10px;
+}
+.dna {
+  width: 256px;
+  height: 3px;
+  border: 1px solid #999;
+  display: inline-block;
+}
+.dna .zero,
+.dna .one {
+  width: 4px;
+  height: 3px;
+  float: left;
+}
+.dna .zero {
+  background-color: #ddd;
+}
+.dna .one {
+  background-color: #222;
 }
 .map {
   -webkit-transform: translateZ(0);

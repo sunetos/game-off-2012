@@ -85,6 +85,7 @@ class DNADisplay implements HasElem {
   $elem: JQuery;
   constructor(public dna:DNA) {
     this.$elem = $('<div class="dna"></div>');
+    console.log(dna.encoded.length);
     for (var i = 0; i < dna.encoded.length; ++i) {
       var cls = (dna.encoded[i] | 0) ? 'one' : 'zero';
       this.$elem.append($('<div></div>').addClass(cls));
@@ -158,6 +159,8 @@ class Cell implements HasElem, InGrid {
   $elem: JQuery;
   $body: JQuery;
   $img: JQuery;
+  $info: JQuery;
+  infoT: any;
   $props: JQuery;
   grid: CellGrid;
   row: number;
@@ -181,8 +184,12 @@ class Cell implements HasElem, InGrid {
       this.props = CELL_DEFS[kind].props.copy();
       this.props.scale(dna);
     }
-    //this.$props = $('<div class="props"></div>').appendTo(this.$elem);
-    //this.setPropElems();
+    this.$elem.on('show-info', proxy(this, 'showInfo'));
+    this.$elem.on('hide-info', proxy(this, 'hideInfo'));
+    this.infoT = renewableTimeout(() => {
+      this.$info.remove();
+      this.$info = null;
+    }, 250);
   }
   setPropElems() {
     Object.keys(this.props).forEach((prop) => {
@@ -192,6 +199,31 @@ class Cell implements HasElem, InGrid {
       }
       $prop.height(this.props[prop]);
     });
+  }
+  showInfo() {
+    console.log('show-info');
+    this.infoT.clear();
+    if (this.$info) return;
+
+    var left = this.col*this.grid.colW, top = this.row*this.grid.rowH;
+    this.$info = $('<div class="cell-info"></div>').css({top: top});
+    this.$info.data('target', this.$elem);
+    this.$info.append('<h5>DNA History</h5>');
+    var $ol = $('<ol></ol>').appendTo(this.$info);
+
+    var dna:DNA = this.dna, $lis = [];
+    while (dna) {
+      var dnaDisplay:DNADisplay = new DNADisplay(dna);
+      $lis.push($('<li></li>').append(dnaDisplay.$elem));
+      dna = dna.ancestor;
+    }
+    $lis.reverse();
+    $lis.forEach(($li) => $ol.append($li));
+
+    this.$elem.parent().append(this.$info);
+  }
+  hideInfo() {
+    this.infoT.set();
   }
   /** Only call this once for now, there's no cleanup. */
   addToGrid(grid:CellGrid, row:number, col:number) {
