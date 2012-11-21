@@ -5,6 +5,54 @@
 /// <reference path="util.ts" />
 
 
+/** The properties are scale factors against the dna. */
+class CellProperties {
+  constructor(public reproduce:number=5, public apoptosis:number=16,
+              public grow:number=10, public enzyme1:number=16,
+              public enzyme2:number=16) {
+  }
+
+  copy():CellProperties {
+    var props = new CellProperties();
+    Object.keys(this).forEach((prop) => {
+      props[prop] = (this[prop]['copy']) ? this[prop].copy() : this[prop];
+    });
+    return props;
+  }
+
+  /** This is mainly used to scale the cell properties by the DNA base. */
+  scale(props:any) {
+    Object.keys(this).forEach((prop) => {
+      this[prop] = (this[prop]*props[prop]) | 0;
+    });
+  }
+}
+
+var CELL_DEFS = {
+    'bone': {props: new CellProperties(1, 3, 1, 1, 1), enzymes: []},
+    'brain': {props: new CellProperties(1, 12, 2, 1, 1)},
+    'colon': {props: new CellProperties(1, 3, 1, 1, 1)},
+    'eye': {props: new CellProperties(1, 5, 1, 1, 1)},
+    'lung': {props: new CellProperties(1, 5, 1, 1, 1)},
+    'heart': {props: new CellProperties(1, 4, 1, 1, 1)},
+    'liver': {props: new CellProperties(1, 4, 1, 1, 1)},
+    'muscle': {props: new CellProperties(1, 6, 1, 1, 1)},
+};
+var CELL_KINDS = Object.keys(CELL_DEFS);
+var CELL_REGIONS = {
+    'head': ['brain', 'eye'],
+    'torso': ['lung', 'heart'],
+    'midsection': ['liver', 'colon'],
+    'legs': ['muscle', 'bone'],
+};
+var CELL_BROADCAST = 500;  // ms
+var CELL_IMG = '/img/blank-cell.png';
+var FULL_W = 40, FULL_H = 40;
+var EMPTY_W = 4, EMPTY_H = 4, EMPTY_Z = 0.1;
+//var MAX_MUTATE_SEC = 60*10;
+var MAX_MUTATE_SEC = 1000*60*2;  // For debugging
+
+
 interface HasElem {
   $elem: JQuery;
 }
@@ -66,6 +114,7 @@ class DNA {
     for (var i = 0; i < mutateCount; ++i) {
       var prop:string = Random.choice(this.props);
       while (mutateProps.indexOf(prop) !== -1) prop = Random.choice(this.props);
+      mutateProps.push(prop);
     }
 
     // TODO: Figure out how to handle zeroes.
@@ -85,7 +134,7 @@ class DNADisplay implements HasElem {
   $elem: JQuery;
   constructor(public dna:DNA) {
     this.$elem = $('<div class="dna"></div>');
-    for (var i = 0; i < dna.encoded.length; ++i) {
+    for (var i = 32; i < dna.encoded.length; ++i) {
       var cls = (dna.encoded[i] | 0) ? 'one' : 'zero';
       this.$elem.append($('<div></div>').addClass(cls));
     }
@@ -94,6 +143,8 @@ class DNADisplay implements HasElem {
 
 /** Control properties of all DNA over time. */
 class DNAManager {
+  $info:JQuery; $resist:JQuery; $count:JQuery; $amount:JQuery;
+
   public root: DNA = null;
   // Mutation resistance goes down over time, and count goes up.
   public mutateResist: number = 20;
@@ -104,54 +155,22 @@ class DNAManager {
     // I think the DNA needs to start the same every game for stability.
     this.root = root || new DNA(10, 10, 10, 10, 10, 10);
     this.root.manager = this;
+    this.$info = $('.mutate-info');
+    this.$resist = this.$info.find('.resist');
+    this.$count = this.$info.find('.count');
+    this.$amount = this.$info.find('.amount');
+
+    var tween = new TWEEN.Tween(this);
+    tween.to({mutateResist: 5, mutateCount: 5, mutateAmount: 3}, MAX_MUTATE_SEC);
+    tween.onUpdate(this.updateInfo);
+    tween.start();
+  }
+  updateInfo() {
+    this.$resist.text(this.mutateResist.toFixed(2));
+    this.$count.text(this.mutateCount.toFixed(2));
+    this.$amount.text(this.mutateAmount.toFixed(2));
   }
 }
-
-/** The properties are scale factors against the dna. */
-class CellProperties {
-  constructor(public reproduce:number=5, public apoptosis:number=16,
-              public grow:number=10, public enzyme1:number=16,
-              public enzyme2:number=16) {
-  }
-
-  copy():CellProperties {
-    var props = new CellProperties();
-    Object.keys(this).forEach((prop) => {
-      props[prop] = (this[prop]['copy']) ? this[prop].copy() : this[prop];
-    });
-    return props;
-  }
-
-  /** This is mainly used to scale the cell properties by the DNA base. */
-  scale(props:any) {
-    Object.keys(this).forEach((prop) => {
-      this[prop] = (this[prop]*props[prop]) | 0;
-    });
-  }
-}
-
-var CELL_DEFS = {
-    'bone': {props: new CellProperties(1, 3, 1, 1, 1), enzymes: []},
-    'brain': {props: new CellProperties(1, 12, 2, 1, 1)},
-    'colon': {props: new CellProperties(1, 3, 1, 1, 1)},
-    'eye': {props: new CellProperties(1, 5, 1, 1, 1)},
-    'lung': {props: new CellProperties(1, 5, 1, 1, 1)},
-    'heart': {props: new CellProperties(1, 4, 1, 1, 1)},
-    'liver': {props: new CellProperties(1, 4, 1, 1, 1)},
-    'muscle': {props: new CellProperties(1, 6, 1, 1, 1)},
-};
-var CELL_KINDS = Object.keys(CELL_DEFS);
-var CELL_REGIONS = {
-    'head': ['brain', 'eye'],
-    'torso': ['lung', 'heart'],
-    'midsection': ['liver', 'colon'],
-    'legs': ['muscle', 'bone'],
-};
-var CELL_BROADCAST = 500;  // ms
-var CELL_IMG = '/img/blank-cell.png';
-var FULL_W = 40, FULL_H = 40;
-var EMPTY_W = 4, EMPTY_H = 4, EMPTY_Z = 0.1, EMPTY_ZS = 'scale(0.1)';
-
 
 /** Where most of the magic happens. */
 class Cell implements HasElem, InGrid {

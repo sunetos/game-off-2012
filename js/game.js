@@ -203,103 +203,6 @@ function vendorPropName(style, name) {
     }
     return origName;
 }
-var KeyManager = (function () {
-    function KeyManager(key) {
-        this.key = key || TEA.randomKey();
-    }
-    return KeyManager;
-})();
-var keyMgr = new KeyManager();
-var DNA = (function () {
-    function DNA(reproduce, apoptosis, grow, enzyme1, enzyme2, misc1) {
-        if (typeof reproduce === "undefined") { reproduce = 1; }
-        if (typeof apoptosis === "undefined") { apoptosis = 1; }
-        if (typeof grow === "undefined") { grow = 1; }
-        if (typeof enzyme1 === "undefined") { enzyme1 = 1; }
-        if (typeof enzyme2 === "undefined") { enzyme2 = 1; }
-        if (typeof misc1 === "undefined") { misc1 = 1; }
-        this.reproduce = reproduce;
-        this.apoptosis = apoptosis;
-        this.grow = grow;
-        this.enzyme1 = enzyme1;
-        this.enzyme2 = enzyme2;
-        this.misc1 = misc1;
-        this.code = '';
-        this.encoded = '';
-        this.ancestor = null;
-        this.manager = null;
-        this.props = [
-            'reproduce', 
-            'apoptosis', 
-            'grow', 
-            'enzyme1', 
-            'enzyme2', 
-            'misc1'
-        ];
-        this.buildCode();
-    }
-    DNA.prototype.buildCode = function () {
-        var _this = this;
-        var val = 0;
-        this.props.forEach(function (prop, i) {
-            val |= _this[prop] << (i << 2);
-        });
-        this.code = TEA.int2bin(val);
-        this.encoded = TEA.encrypt64b(keyMgr.key, this.code);
-    };
-    DNA.prototype.copy = function (mutate) {
-        if (typeof mutate === "undefined") { mutate = true; }
-        var _this = this;
-        var doMutate = mutate || Random.int(1, this.manager.mutateResist) === 1;
-        if(!doMutate) {
-            return this;
-        }
-        var copy = new DNA();
-        copy.ancestor = this;
-        copy.manager = this.manager;
-        this.props.forEach(function (prop) {
-            copy[prop] = _this[prop];
-        });
-        var mutateProps = [];
-        var mutateCount = Random.int(1, this.manager.mutateCount);
-        for(var i = 0; i < mutateCount; ++i) {
-            var prop = Random.choice(this.props);
-            while(mutateProps.indexOf(prop) !== -1) {
-                prop = Random.choice(this.props);
-            }
-        }
-        mutateProps.forEach(function (prop) {
-            var amount = Random.int(1, _this.manager.mutateAmount);
-            var dir = (Random.int(0, 1) - 1) | 1;
-            copy[prop] = (copy[prop] + amount * dir) % 32;
-        });
-        copy.buildCode();
-        return copy;
-    };
-    return DNA;
-})();
-var DNADisplay = (function () {
-    function DNADisplay(dna) {
-        this.dna = dna;
-        this.$elem = $('<div class="dna"></div>');
-        for(var i = 0; i < dna.encoded.length; ++i) {
-            var cls = (dna.encoded[i] | 0) ? 'one' : 'zero';
-            this.$elem.append($('<div></div>').addClass(cls));
-        }
-    }
-    return DNADisplay;
-})();
-var DNAManager = (function () {
-    function DNAManager(root) {
-        this.root = null;
-        this.mutateResist = 20;
-        this.mutateCount = 1;
-        this.mutateAmount = 2;
-        this.root = root || new DNA(10, 10, 10, 10, 10, 10);
-        this.root.manager = this;
-    }
-    return DNAManager;
-})();
 var CellProperties = (function () {
     function CellProperties(reproduce, apoptosis, grow, enzyme1, enzyme2) {
         if (typeof reproduce === "undefined") { reproduce = 5; }
@@ -378,7 +281,123 @@ var CELL_REGIONS = {
 var CELL_BROADCAST = 500;
 var CELL_IMG = '/img/blank-cell.png';
 var FULL_W = 40, FULL_H = 40;
-var EMPTY_W = 4, EMPTY_H = 4, EMPTY_Z = 0.1, EMPTY_ZS = 'scale(0.1)';
+var EMPTY_W = 4, EMPTY_H = 4, EMPTY_Z = 0.1;
+var MAX_MUTATE_SEC = 1000 * 60 * 2;
+var KeyManager = (function () {
+    function KeyManager(key) {
+        this.key = key || TEA.randomKey();
+    }
+    return KeyManager;
+})();
+var keyMgr = new KeyManager();
+var DNA = (function () {
+    function DNA(reproduce, apoptosis, grow, enzyme1, enzyme2, misc1) {
+        if (typeof reproduce === "undefined") { reproduce = 1; }
+        if (typeof apoptosis === "undefined") { apoptosis = 1; }
+        if (typeof grow === "undefined") { grow = 1; }
+        if (typeof enzyme1 === "undefined") { enzyme1 = 1; }
+        if (typeof enzyme2 === "undefined") { enzyme2 = 1; }
+        if (typeof misc1 === "undefined") { misc1 = 1; }
+        this.reproduce = reproduce;
+        this.apoptosis = apoptosis;
+        this.grow = grow;
+        this.enzyme1 = enzyme1;
+        this.enzyme2 = enzyme2;
+        this.misc1 = misc1;
+        this.code = '';
+        this.encoded = '';
+        this.ancestor = null;
+        this.manager = null;
+        this.props = [
+            'reproduce', 
+            'apoptosis', 
+            'grow', 
+            'enzyme1', 
+            'enzyme2', 
+            'misc1'
+        ];
+        this.buildCode();
+    }
+    DNA.prototype.buildCode = function () {
+        var _this = this;
+        var val = 0;
+        this.props.forEach(function (prop, i) {
+            val |= _this[prop] << (i << 2);
+        });
+        this.code = TEA.int2bin(val);
+        this.encoded = TEA.encrypt64b(keyMgr.key, this.code);
+    };
+    DNA.prototype.copy = function (mutate) {
+        if (typeof mutate === "undefined") { mutate = true; }
+        var _this = this;
+        var doMutate = mutate || Random.int(1, this.manager.mutateResist) === 1;
+        if(!doMutate) {
+            return this;
+        }
+        var copy = new DNA();
+        copy.ancestor = this;
+        copy.manager = this.manager;
+        this.props.forEach(function (prop) {
+            copy[prop] = _this[prop];
+        });
+        var mutateProps = [];
+        var mutateCount = Random.int(1, this.manager.mutateCount);
+        for(var i = 0; i < mutateCount; ++i) {
+            var prop = Random.choice(this.props);
+            while(mutateProps.indexOf(prop) !== -1) {
+                prop = Random.choice(this.props);
+            }
+            mutateProps.push(prop);
+        }
+        mutateProps.forEach(function (prop) {
+            var amount = Random.int(1, _this.manager.mutateAmount);
+            var dir = (Random.int(0, 1) - 1) | 1;
+            copy[prop] = (copy[prop] + amount * dir) % 32;
+        });
+        copy.buildCode();
+        return copy;
+    };
+    return DNA;
+})();
+var DNADisplay = (function () {
+    function DNADisplay(dna) {
+        this.dna = dna;
+        this.$elem = $('<div class="dna"></div>');
+        for(var i = 32; i < dna.encoded.length; ++i) {
+            var cls = (dna.encoded[i] | 0) ? 'one' : 'zero';
+            this.$elem.append($('<div></div>').addClass(cls));
+        }
+    }
+    return DNADisplay;
+})();
+var DNAManager = (function () {
+    function DNAManager(root) {
+        this.root = null;
+        this.mutateResist = 20;
+        this.mutateCount = 1;
+        this.mutateAmount = 2;
+        this.root = root || new DNA(10, 10, 10, 10, 10, 10);
+        this.root.manager = this;
+        this.$info = $('.mutate-info');
+        this.$resist = this.$info.find('.resist');
+        this.$count = this.$info.find('.count');
+        this.$amount = this.$info.find('.amount');
+        var tween = new TWEEN.Tween(this);
+        tween.to({
+            mutateResist: 5,
+            mutateCount: 5,
+            mutateAmount: 3
+        }, MAX_MUTATE_SEC);
+        tween.onUpdate(this.updateInfo);
+        tween.start();
+    }
+    DNAManager.prototype.updateInfo = function () {
+        this.$resist.text(this.mutateResist.toFixed(2));
+        this.$count.text(this.mutateCount.toFixed(2));
+        this.$amount.text(this.mutateAmount.toFixed(2));
+    };
+    return DNAManager;
+})();
 var Cell = (function () {
     function Cell(dna, kind) {
         this.dna = dna;
