@@ -1014,6 +1014,56 @@ to {
 .dna .one {
   background-color: #222;
 }
+.enzyme-info {
+  width: 100%;
+}
+.enzyme-info .levels {
+  width: 100%;
+  position: relative;
+  background-color: rgba(255, 255, 255, 0.5);
+  font-size: 10px;
+  padding: 0;
+}
+.enzyme-info .levels .level {
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+  height: 16px;
+  margin-bottom: 1px;
+  padding: 2px;
+  position: relative;
+}
+.enzyme-info .levels .level .name,
+.enzyme-info .levels .level .val {
+  display: block;
+  position: absolute;
+}
+.enzyme-info .levels .level .name {
+  left: 2px;
+  top: 2px;
+  z-index: 1;
+  cursor: default;
+}
+.enzyme-info .levels .level .val {
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+  z-index: 0;
+  left: 0;
+  top: 0;
+  height: 16px;
+  background-color: #060;
+  -khtml-opacity: 0.75;
+  -webkit-opacity: 0.75;
+  -moz-opacity: 0.75;
+  opacity: 0.75;
+}
+.enzyme-info .levels .level .val.low {
+  background-color: #600;
+}
+.enzyme-info .levels .level .val.high {
+  background-color: #600;
+}
 .map {
   -webkit-transform: translateZ(0);
   -moz-transform: translateZ(0);
@@ -1147,10 +1197,6 @@ to {
 .mutate-info {
   padding: 0.5em;
 }
-.mutate-info h5 {
-  margin: 0;
-  font-size: 16px;
-}
 .mutate-info ul {
   margin: 0.5em 0;
   padding: 0 0 0 30px;
@@ -1187,6 +1233,10 @@ to {
   border-right: 1px solid rgba(255, 255, 255, 0.5);
   background-color: rgba(0, 0, 0, 0.25);
   color: #ddd;
+}
+.game aside h5 {
+  margin: 0;
+  font-size: 16px;
 }
 .game aside p {
   color: #ddd;

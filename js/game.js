@@ -130,6 +130,11 @@ var Random;
         return Math.random() * scale;
     }
     Random.scale = scale;
+    function chance(outOf) {
+        if (typeof outOf === "undefined") { outOf = 1; }
+        return (int(1, outOf) === 1);
+    }
+    Random.chance = chance;
 })(Random || (Random = {}));
 function proxy(context, prop) {
     return context[prop].bind(context);
@@ -208,8 +213,8 @@ var CellProperties = (function () {
         if (typeof reproduce === "undefined") { reproduce = 5; }
         if (typeof apoptosis === "undefined") { apoptosis = 16; }
         if (typeof grow === "undefined") { grow = 10; }
-        if (typeof enzyme1 === "undefined") { enzyme1 = 16; }
-        if (typeof enzyme2 === "undefined") { enzyme2 = 16; }
+        if (typeof enzyme1 === "undefined") { enzyme1 = 1; }
+        if (typeof enzyme2 === "undefined") { enzyme2 = 1; }
         this.reproduce = reproduce;
         this.apoptosis = apoptosis;
         this.grow = grow;
@@ -248,137 +253,138 @@ var Disease = (function () {
     return Disease;
 })();
 var Enzyme = (function () {
-    function Enzyme(name, diseases) {
+    function Enzyme(name, title, diseases) {
         this.name = name;
+        this.title = title;
         this.diseases = diseases;
     }
     return Enzyme;
 })();
 var ENZYMES = {
-    'alp': new Enzyme('Alkaline phosphatase (ALP)', [
+    'alp': new Enzyme('ALP', 'Alkaline phosphatase', [
         new Disease("Paget's disease", DiseaseCondition.HIGH), 
         new Disease('Aplastic anemia', DiseaseCondition.LOW), 
         
     ]),
-    'alt': new Enzyme('Alanine transaminase (ALT)', [
+    'alt': new Enzyme('ALT', 'Alanine transaminase', [
         new Disease('Cirrhosis', DiseaseCondition.HIGH), 
         new Disease('Diabetes', DiseaseCondition.HIGH), 
         
     ]),
-    'ast': new Enzyme('Aspartate transaminase (AST)', [
+    'ast': new Enzyme('AST', 'Aspartate transaminase', [
         new Disease('Hepatitis', DiseaseCondition.HIGH), 
         
     ]),
-    'bace1': new Enzyme('Beta-secretase 1 (BACE1)', [
+    'bace1': new Enzyme('BACE1', 'Beta-secretase 1', [
         new Disease('Alzheimers', DiseaseCondition.HIGH), 
         
     ]),
-    'ca': new Enzyme('Carbonic anhydrase (CA)', [
+    'ca': new Enzyme('CA', 'Carbonic anhydrase', [
         new Disease('Acidosis', DiseaseCondition.LOW), 
         
     ]),
-    'ck': new Enzyme('Creatine kinase (CK)', [
+    'ck': new Enzyme('CK', 'Creatine kinase', [
         new Disease('Rhabdomyolysis', DiseaseCondition.HIGH), 
         
     ]),
-    'e-cadherin': new Enzyme('E-cadherin (CAM 120/80)', [
+    'e-cadherin': new Enzyme('CAM 120/80', 'E-cadherin', [
         new Disease('Eczema', DiseaseCondition.HIGH), 
         
     ]),
-    'gastrin': new Enzyme('Gastrin', [
+    'gastrin': new Enzyme('Gastrin', 'Gastrin', [
         new Disease('Gastritis', DiseaseCondition.HIGH), 
         new Disease('Zollinger-Ellison syndrome', DiseaseCondition.HIGH), 
         
     ]),
-    'hexosaminidase': new Enzyme('Hexosaminidase', [
+    'hexosaminidase': new Enzyme('Hexosaminidase', 'Hexosaminidase', [
         new Disease('Sandhoff disease', DiseaseCondition.LOW), 
         new Disease('Tay-Sachs disease', DiseaseCondition.LOW), 
         
     ]),
-    'glutathione': new Enzyme('Glutathione', [
+    'glutathione': new Enzyme('Glutathione', 'Glutathione', [
         new Disease('Cataracts', DiseaseCondition.LOW), 
         
     ]),
-    'lysozyme': new Enzyme('Lysozyme', [
+    'lysozyme': new Enzyme('Lysozyme', 'Lysozyme', [
         new Disease('Conjunctivitis', DiseaseCondition.LOW), 
         
     ]),
-    'pepsin': new Enzyme('Pepsin', [
+    'pepsin': new Enzyme('Pepsin', 'Pepsin', [
         new Disease('Peptic ulcer', DiseaseCondition.HIGH), 
         
     ]),
-    'tnf-a': new Enzyme('Tumor necrosis factor-alpha (TNF-α)', [
+    'tnf-a': new Enzyme('TNF-α', 'Tumor necrosis factor-alpha', [
         new Disease('Psoriasis', DiseaseCondition.HIGH), 
         new Disease('Systemic Sclerosis', DiseaseCondition.HIGH), 
         
     ]),
-    'trap': new Enzyme('Tartrate-resistant acid phosphatase (TRAP)', [
+    'trap': new Enzyme('TRAP', 'Tartrate-resistant acid phosphatase', [
         new Disease('Obesity', DiseaseCondition.HIGH), 
         new Disease('Osteoporosis', DiseaseCondition.HIGH), 
         
     ]),
-    'troponin': new Enzyme('Troponin', [
+    'troponin': new Enzyme('Troponin', 'Troponin', [
         new Disease('Heart attack', DiseaseCondition.HIGH), 
         new Disease('Myocarditis', DiseaseCondition.HIGH), 
         
     ]),
-    'trypsin': new Enzyme('Trypsin', [
+    'trypsin': new Enzyme('Trypsin', 'Trypsin', [
         new Disease('Emphysema', DiseaseCondition.HIGH), 
         
     ])
 };
 var CELL_DEFS = {
     'bone': {
-        props: new CellProperties(1, 3, 1, 1, 1),
+        props: new CellProperties(1, 3, 1),
         enzymes: [
             'alp', 
             'trap'
         ]
     },
     'brain': {
-        props: new CellProperties(1, 12, 2, 1, 1),
+        props: new CellProperties(1, 12, 2),
         enzymes: [
             'hexosaminidase', 
             'bace1'
         ]
     },
     'eye': {
-        props: new CellProperties(1, 5, 1, 1, 1),
+        props: new CellProperties(1, 5, 1),
         enzymes: [
             'glutathione', 
             'lysozyme'
         ]
     },
     'heart': {
-        props: new CellProperties(1, 4, 1, 1, 1),
+        props: new CellProperties(1, 4, 1),
         enzymes: [
             'ck', 
             'troponin'
         ]
     },
     'liver': {
-        props: new CellProperties(1, 4, 1, 1, 1),
+        props: new CellProperties(1, 4, 1),
         enzymes: [
             'ast', 
             'alt'
         ]
     },
     'lung': {
-        props: new CellProperties(1, 5, 1, 1, 1),
+        props: new CellProperties(1, 5, 1),
         enzymes: [
             'trypsin', 
             'ca'
         ]
     },
     'skin': {
-        props: new CellProperties(1, 6, 1, 1, 1),
+        props: new CellProperties(1, 6, 1),
         enzymes: [
             'tnf-a', 
             'e-cadherin'
         ]
     },
     'stomach': {
-        props: new CellProperties(1, 3, 1, 1, 1),
+        props: new CellProperties(1, 3, 1),
         enzymes: [
             'gastrin', 
             'pepsin'
@@ -409,21 +415,131 @@ var CELL_IMG = '/img/blank-cell.png';
 var FULL_W = 40, FULL_H = 40;
 var EMPTY_W = 4, EMPTY_H = 4, EMPTY_Z = 0.1;
 var MAX_MUTATE_SEC = 1000 * 60 * 2;
+var DISEASE_CHANCE = 4;
+var DiseaseManager = (function () {
+    function DiseaseManager(chance) {
+        this.chance = chance;
+        this.current = {
+        };
+    }
+    DiseaseManager.prototype.acquire = function (disease) {
+        if(this.current[disease.name]) {
+            return;
+        }
+        this.current[disease.name] = disease;
+        Msg.pub('disease:acquire', disease);
+    };
+    DiseaseManager.prototype.recover = function (disease) {
+        if(!this.current[disease.name]) {
+            return;
+        }
+        delete this.current[disease.name];
+        Msg.pub('disease:recover', disease);
+    };
+    return DiseaseManager;
+})();
+var EnzymeLevel = (function () {
+    function EnzymeLevel(enzyme, start, low, high, max) {
+        this.enzyme = enzyme;
+        this.start = start;
+        this.low = low;
+        this.high = high;
+        this.max = max;
+        this.val = 0;
+        this.val = start;
+    }
+    return EnzymeLevel;
+})();
+var EnzymeManager = (function () {
+    function EnzymeManager(disMgr, cellsPerKind) {
+        this.disMgr = disMgr;
+        this.levels = {
+        };
+        for(var name in ENZYMES) {
+            var enzyme = ENZYMES[name];
+            var start = 0;
+            var low = cellsPerKind * 11;
+            var high = cellsPerKind * 19;
+            var max = cellsPerKind * 31;
+            this.levels[name] = new EnzymeLevel(enzyme, start, low, high, max);
+        }
+    }
+    EnzymeManager.prototype.add = function (cell) {
+        var enzymes = CELL_DEFS[cell.kind].enzymes;
+        var level1 = this.levels[enzymes[0]];
+        var level2 = this.levels[enzymes[1]];
+        level1.val += cell.props.enzyme1;
+        level2.val += cell.props.enzyme2;
+        this.update(enzymes[0], level1);
+        this.update(enzymes[1], level2);
+    };
+    EnzymeManager.prototype.subtract = function (cell) {
+        var enzymes = CELL_DEFS[cell.kind].enzymes;
+        var level1 = this.levels[enzymes[0]];
+        var level2 = this.levels[enzymes[1]];
+        level1.val -= cell.props.enzyme1;
+        level2.val -= cell.props.enzyme2;
+        this.update(enzymes[0], level1);
+        this.update(enzymes[1], level2);
+    };
+    EnzymeManager.prototype.update = function (name, level) {
+        var _this = this;
+        Msg.pub('enzyme:update', name, level);
+        var low = (level.val <= level.low), high = (level.val >= level.high);
+        if(low || high) {
+            level.enzyme.diseases.forEach(function (disease) {
+                var infect = false;
+                if((low && disease.condition === DiseaseCondition.LOW) || (high && disease.condition === DiseaseCondition.HIGH)) {
+                    infect = Random.chance(_this.disMgr.chance);
+                }
+                if(infect) {
+                    _this.disMgr.acquire(disease);
+                }
+            });
+        }
+    };
+    return EnzymeManager;
+})();
+var EnzymeStats = (function () {
+    function EnzymeStats(elem, cfg) {
+        this.levels = [];
+        this.$elem = $(elem);
+        this.$elem.empty();
+        for(var name in ENZYMES) {
+            var enzyme = ENZYMES[name];
+            var $level = $('<li class="level"></li>');
+            var $name = $('<span class="name"></span>').text(enzyme.name).appendTo($level);
+            $name.attr('title', enzyme.title);
+            var $val = $('<span class="val"></span>').appendTo($level);
+            $level.attr('id', name).appendTo(this.$elem);
+            this.levels[name] = $val;
+        }
+        Msg.sub('enzyme:update', proxy(this, 'update'));
+    }
+    EnzymeStats.prototype.update = function (name, level) {
+        var $level = this.levels[name];
+        var percent = 100 * (level.val / level.max);
+        $level.css('width', percent + '%');
+        $level.toggleClass('low', level.val <= level.low);
+        $level.toggleClass('high', level.val >= level.high);
+    };
+    return EnzymeStats;
+})();
 var KeyManager = (function () {
     function KeyManager(key) {
         this.key = key || TEA.randomKey();
     }
     return KeyManager;
 })();
-var keyMgr = new KeyManager();
 var DNA = (function () {
-    function DNA(reproduce, apoptosis, grow, enzyme1, enzyme2, misc1) {
+    function DNA(key, reproduce, apoptosis, grow, enzyme1, enzyme2, misc1) {
         if (typeof reproduce === "undefined") { reproduce = 1; }
         if (typeof apoptosis === "undefined") { apoptosis = 1; }
         if (typeof grow === "undefined") { grow = 1; }
         if (typeof enzyme1 === "undefined") { enzyme1 = 1; }
         if (typeof enzyme2 === "undefined") { enzyme2 = 1; }
         if (typeof misc1 === "undefined") { misc1 = 1; }
+        this.key = key;
         this.reproduce = reproduce;
         this.apoptosis = apoptosis;
         this.grow = grow;
@@ -451,16 +567,16 @@ var DNA = (function () {
             val |= _this[prop] << (i << 2);
         });
         this.code = TEA.int2bin(val);
-        this.encoded = TEA.encrypt64b(keyMgr.key, this.code);
+        this.encoded = TEA.encrypt64b(this.key, this.code);
     };
     DNA.prototype.copy = function (mutate) {
         if (typeof mutate === "undefined") { mutate = true; }
         var _this = this;
-        var doMutate = mutate || Random.int(1, this.manager.mutateResist) === 1;
+        var doMutate = mutate || Random.chance(this.manager.mutateResist);
         if(!doMutate) {
             return this;
         }
-        var copy = new DNA();
+        var copy = new DNA(this.key);
         copy.ancestor = this;
         copy.manager = this.manager;
         this.props.forEach(function (prop) {
@@ -497,12 +613,12 @@ var DNADisplay = (function () {
     return DNADisplay;
 })();
 var DNAManager = (function () {
-    function DNAManager(root) {
+    function DNAManager(cfg, root) {
         this.root = null;
         this.mutateResist = 20;
         this.mutateCount = 1;
         this.mutateAmount = 2;
-        this.root = root || new DNA(10, 10, 10, 10, 10, 10);
+        this.root = root || new DNA(cfg.keyMgr.key, 10, 10, 10, 15, 15, 15);
         this.root.manager = this;
         this.$info = $('.mutate-info');
         this.$resist = this.$info.find('.resist');
@@ -525,7 +641,8 @@ var DNAManager = (function () {
     return DNAManager;
 })();
 var Cell = (function () {
-    function Cell(dna, kind) {
+    function Cell(cfg, dna, kind) {
+        this.cfg = cfg;
         this.dna = dna;
         this.kind = kind;
         var _this = this;
@@ -533,6 +650,7 @@ var Cell = (function () {
         this.$body = $('<div class="body" width="100%" height="100%"></div>').appendTo(this.$elem);
         this.$img = $('<img alt=""/>').attr('src', CELL_IMG).appendTo(this.$body);
         this.row = this.col = 0;
+        this.enzMgr = cfg.enzMgr;
         this.broadcastT = renewableTimeout(proxy(this, 'broadcast'), CELL_BROADCAST);
         if(kind === 'empty') {
             this.props = new CellProperties();
@@ -611,6 +729,7 @@ var Cell = (function () {
     };
     Cell.prototype.birth = function (fastForward) {
         if (typeof fastForward === "undefined") { fastForward = 0; }
+        this.enzMgr.add(this);
         var lifeSec = this.props.apoptosis, skipSec = 0;
         if(fastForward) {
             skipSec = lifeSec * fastForward;
@@ -700,6 +819,7 @@ var Cell = (function () {
     Cell.prototype.die = function (reason, broadcast) {
         if (typeof broadcast === "undefined") { broadcast = true; }
         Msg.pub('cell:death', self, reason);
+        this.enzMgr.subtract(this);
         this.kind = 'empty';
         this.$elem.pause().removeClass(CELL_KINDS).addClass('empty');
         this.$img.pause();
@@ -737,7 +857,7 @@ var CellGrid = (function () {
         $(window).on('resize hashchange', proxy(this, 'resize'));
         $(document).ready(proxy(this, 'resize'));
         var seedKind = CELL_REGIONS[region.name][index];
-        this.fill(cfg.rootDna, seedKind);
+        this.fill(cfg.rootDna, seedKind, cfg);
     }
     CellGrid.prototype.resize = function () {
         var _this = this;
@@ -754,13 +874,15 @@ var CellGrid = (function () {
         });
         this.$table.empty();
     };
-    CellGrid.prototype.fill = function (dna, kind) {
+    CellGrid.prototype.fill = function (dna, kind, cfg) {
         if (typeof kind === "undefined") { kind = 'empty'; }
+        if (typeof cfg === "undefined") { cfg = {
+        }; }
         this.clear();
         var w = 100 / this.cols, h = 100 / this.rows;
         for(var row = 0; row < this.rows; ++row) {
             for(var col = 0; col < this.cols; ++col) {
-                var cell = new Cell(dna, kind);
+                var cell = new Cell(cfg, dna, kind);
                 cell.$elem.css({
                     left: col * w + '%',
                     top: row * h + '%'
@@ -834,8 +956,12 @@ var Game = (function () {
     function Game(elem, cfg) {
         this.$elem = $(elem);
         this.visible = true;
-        this.dnaMgr = new DNAManager();
+        this.keyMgr = cfg.keyMgr = new KeyManager();
+        this.dnaMgr = cfg.dnaMgr = new DNAManager(cfg);
         cfg.rootDna = this.dnaMgr.root;
+        this.disMgr = cfg.disMgr = new DiseaseManager(DISEASE_CHANCE);
+        this.enzMgr = cfg.enzMgr = new EnzymeManager(cfg.disMgr, cfg.rows * cfg.cols);
+        this.enzStats = new EnzymeStats(this.$elem.find('.enzyme-info .levels'), cfg);
         this.body = new Body(this, this.$elem.find('.body'), cfg);
         Msg.pub('game:init', this);
     }

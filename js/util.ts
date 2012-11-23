@@ -32,14 +32,17 @@ module Msg {
 }
 
 module Random {
-  export function int(min:number, max:number) {
+  export function int(min:number, max:number):number {
     return ((Math.random()*(max - min + 1)) + min) | 0;
   }
-  export function choice(items:any[]) {
+  export function choice(items:any[]):any {
     return items[int(0, items.length - 1)];
   }
-  export function scale(scale:number=1.0) {
+  export function scale(scale:number=1.0):number {
     return Math.random()*scale;
+  }
+  export function chance(outOf:number=1):bool {
+    return (int(1, outOf) === 1);
   }
 }
 

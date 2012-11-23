@@ -210,6 +210,49 @@ a, a:focus, a:hover {
   .one { background-color: #222; }
 }
 
+.enzyme-info {
+  width: 100%;
+
+  .levels {
+    width: 100%;
+    position: relative;
+    background-color: rgba(255, 255, 255, 0.5);
+    font-size: 10px;
+    padding: 0;
+
+    .level {
+      .box-sizing(border-box);
+      height: 16px;
+      margin-bottom: 1px;
+      padding: 2px;
+      position: relative;
+
+      .name, .val {
+        display: block;
+        position: absolute;
+      }
+      .name {
+        left: 2px;
+        top: 2px;
+        z-index: 1;
+        cursor: default;
+      }
+      .val {
+        .box-sizing(border-box);
+        z-index: 0;
+        left: 0;
+        top: 0;
+        height: 16px;
+        background-color: #060;
+        .opacity(0.75);
+
+        &.low { background-color: #600; }
+        &.high { background-color: #600; }
+      }
+    }
+  }
+}
+
 .map {
   .gpu;
   width: 100px;
@@ -269,10 +312,6 @@ a, a:focus, a:hover {
 .mutate-info {
   padding: 0.5em;
 
-  h5 {
-    margin: 0;
-    font-size: 16px;
-  }
   ul {
     margin: 0.5em 0;
     padding: 0 0 0 30px;
@@ -303,6 +342,10 @@ a, a:focus, a:hover {
     background-color: fade(@panel-background, 25%);
     color: #ddd;
 
+    h5 {
+      margin: 0;
+      font-size: 16px;
+    }
     p {
       color: #ddd;
       margin: 5px;

@@ -5,11 +5,15 @@
 /// <reference path="util.ts" />
 
 
+interface HasElem {
+  $elem: JQuery;
+}
+
 /** The properties are scale factors against the dna. */
 class CellProperties {
   constructor(public reproduce:number=5, public apoptosis:number=16,
-              public grow:number=10, public enzyme1:number=16,
-              public enzyme2:number=16) {
+              public grow:number=10, public enzyme1:number=1,
+              public enzyme2:number=1) {
   }
 
   copy():CellProperties {
@@ -39,83 +43,83 @@ class Disease {
 }
 
 class Enzyme {
-  constructor(public name:string, public diseases:Disease[]) {
+  constructor(public name:string, public title:string, public diseases:Disease[]) {
   }
 }
 
 var ENZYMES = {
-    'alp': new Enzyme('Alkaline phosphatase (ALP)', [
+    'alp': new Enzyme('ALP', 'Alkaline phosphatase', [
         new Disease("Paget's disease", DiseaseCondition.HIGH),
         new Disease('Aplastic anemia', DiseaseCondition.LOW),
     ]),
-    'alt': new Enzyme('Alanine transaminase (ALT)', [
+    'alt': new Enzyme('ALT', 'Alanine transaminase', [
         new Disease('Cirrhosis', DiseaseCondition.HIGH),
         new Disease('Diabetes', DiseaseCondition.HIGH),
     ]),
-    'ast': new Enzyme('Aspartate transaminase (AST)', [
+    'ast': new Enzyme('AST', 'Aspartate transaminase', [
         new Disease('Hepatitis', DiseaseCondition.HIGH),
     ]),
-    'bace1': new Enzyme('Beta-secretase 1 (BACE1)', [
+    'bace1': new Enzyme('BACE1', 'Beta-secretase 1', [
         new Disease('Alzheimers', DiseaseCondition.HIGH),
     ]),
-    'ca': new Enzyme('Carbonic anhydrase (CA)', [
+    'ca': new Enzyme('CA', 'Carbonic anhydrase', [
         new Disease('Acidosis', DiseaseCondition.LOW),
     ]),
-    'ck': new Enzyme('Creatine kinase (CK)', [
+    'ck': new Enzyme('CK', 'Creatine kinase', [
         new Disease('Rhabdomyolysis', DiseaseCondition.HIGH),
     ]),
-    'e-cadherin': new Enzyme('E-cadherin (CAM 120/80)', [
+    'e-cadherin': new Enzyme('CAM 120/80', 'E-cadherin', [
         new Disease('Eczema', DiseaseCondition.HIGH),
     ]),
-    'gastrin': new Enzyme('Gastrin', [
+    'gastrin': new Enzyme('Gastrin', 'Gastrin', [
         new Disease('Gastritis', DiseaseCondition.HIGH),
         new Disease('Zollinger-Ellison syndrome', DiseaseCondition.HIGH),
     ]),
-    'hexosaminidase': new Enzyme('Hexosaminidase', [
+    'hexosaminidase': new Enzyme('Hexosaminidase', 'Hexosaminidase', [
         new Disease('Sandhoff disease', DiseaseCondition.LOW),
         new Disease('Tay-Sachs disease', DiseaseCondition.LOW),
     ]),
-    'glutathione': new Enzyme('Glutathione', [
+    'glutathione': new Enzyme('Glutathione', 'Glutathione', [
         new Disease('Cataracts', DiseaseCondition.LOW),
     ]),
-    'lysozyme': new Enzyme('Lysozyme', [
+    'lysozyme': new Enzyme('Lysozyme', 'Lysozyme', [
         new Disease('Conjunctivitis', DiseaseCondition.LOW),
     ]),
-    'pepsin': new Enzyme('Pepsin', [
+    'pepsin': new Enzyme('Pepsin', 'Pepsin', [
         new Disease('Peptic ulcer', DiseaseCondition.HIGH),
     ]),
-    'tnf-a': new Enzyme('Tumor necrosis factor-alpha (TNF-α)', [
+    'tnf-a': new Enzyme('TNF-α', 'Tumor necrosis factor-alpha', [
         new Disease('Psoriasis', DiseaseCondition.HIGH),
         new Disease('Systemic Sclerosis', DiseaseCondition.HIGH),
     ]),
-    'trap': new Enzyme('Tartrate-resistant acid phosphatase (TRAP)', [
+    'trap': new Enzyme('TRAP', 'Tartrate-resistant acid phosphatase', [
         new Disease('Obesity', DiseaseCondition.HIGH),
         new Disease('Osteoporosis', DiseaseCondition.HIGH),
     ]),
-    'troponin': new Enzyme('Troponin', [
+    'troponin': new Enzyme('Troponin', 'Troponin', [
         new Disease('Heart attack', DiseaseCondition.HIGH),
         new Disease('Myocarditis', DiseaseCondition.HIGH),
     ]),
-    'trypsin': new Enzyme('Trypsin', [
+    'trypsin': new Enzyme('Trypsin', 'Trypsin', [
         new Disease('Emphysema', DiseaseCondition.HIGH),
     ]),
 };
 var CELL_DEFS = {
-    'bone': {props: new CellProperties(1, 3, 1, 1, 1),
+    'bone': {props: new CellProperties(1, 3, 1),
         enzymes: ['alp', 'trap']},
-    'brain': {props: new CellProperties(1, 12, 2, 1, 1),
+    'brain': {props: new CellProperties(1, 12, 2),
         enzymes: ['hexosaminidase', 'bace1']},
-    'eye': {props: new CellProperties(1, 5, 1, 1, 1),
+    'eye': {props: new CellProperties(1, 5, 1),
         enzymes: ['glutathione', 'lysozyme']},
-    'heart': {props: new CellProperties(1, 4, 1, 1, 1),
+    'heart': {props: new CellProperties(1, 4, 1),
         enzymes: ['ck', 'troponin']},
-    'liver': {props: new CellProperties(1, 4, 1, 1, 1),
+    'liver': {props: new CellProperties(1, 4, 1),
         enzymes: ['ast', 'alt']},
-    'lung': {props: new CellProperties(1, 5, 1, 1, 1),
+    'lung': {props: new CellProperties(1, 5, 1),
         enzymes: ['trypsin', 'ca']},
-    'skin': {props: new CellProperties(1, 6, 1, 1, 1),
+    'skin': {props: new CellProperties(1, 6, 1),
         enzymes: ['tnf-a', 'e-cadherin']},
-    'stomach': {props: new CellProperties(1, 3, 1, 1, 1),
+    'stomach': {props: new CellProperties(1, 3, 1),
         enzymes: ['gastrin', 'pepsin']},
 };
 var CELL_KINDS = Object.keys(CELL_DEFS);
@@ -125,17 +129,116 @@ var CELL_REGIONS = {
     'midsection': ['liver', 'stomach'],
     'legs': ['skin', 'bone'],
 };
+
 var CELL_BROADCAST = 500;  // ms
 var CELL_IMG = '/img/blank-cell.png';
 var FULL_W = 40, FULL_H = 40;
 var EMPTY_W = 4, EMPTY_H = 4, EMPTY_Z = 0.1;
 //var MAX_MUTATE_SEC = 60*10;
 var MAX_MUTATE_SEC = 1000*60*2;  // For debugging
+var DISEASE_CHANCE = 4;
 
+class DiseaseManager {
+  public current:any = {};
+  constructor(public chance:number) { }
 
-interface HasElem {
-  $elem: JQuery;
+  acquire(disease:Disease) {
+    if (this.current[disease.name]) return;
+
+    this.current[disease.name] = disease;
+    Msg.pub('disease:acquire', disease);
+  }
+  recover(disease:Disease) {
+    if (!this.current[disease.name]) return;
+
+    delete this.current[disease.name];
+    Msg.pub('disease:recover', disease);
+  }
 }
+
+class EnzymeLevel {
+  public val:number = 0;
+  constructor(public enzyme:Enzyme, public start:number, public low:number,
+              public high:number, public max:number) {
+    this.val = start;
+  }
+}
+
+class EnzymeManager {
+  public levels:any = {};
+  constructor(public disMgr:DiseaseManager, cellsPerKind:number) {
+    for (var name in ENZYMES) {
+      var enzyme:Enzyme = ENZYMES[name];
+      var start = 0;
+      var low = cellsPerKind*11;
+      var high = cellsPerKind*19;
+      var max = cellsPerKind*31;
+      this.levels[name] = new EnzymeLevel(enzyme, start, low, high, max);
+    }
+  }
+  add(cell:Cell) {
+    var enzymes:string[] = CELL_DEFS[cell.kind].enzymes;
+    var level1:EnzymeLevel = this.levels[enzymes[0]];
+    var level2:EnzymeLevel = this.levels[enzymes[1]];
+    level1.val += cell.props.enzyme1;
+    level2.val += cell.props.enzyme2;
+    this.update(enzymes[0], level1);
+    this.update(enzymes[1], level2);
+  }
+  subtract(cell:Cell) {
+    var enzymes:string[] = CELL_DEFS[cell.kind].enzymes;
+    var level1:EnzymeLevel = this.levels[enzymes[0]];
+    var level2:EnzymeLevel = this.levels[enzymes[1]];
+    level1.val -= cell.props.enzyme1;
+    level2.val -= cell.props.enzyme2;
+    this.update(enzymes[0], level1);
+    this.update(enzymes[1], level2);
+  }
+  update(name:string, level:EnzymeLevel) {
+    Msg.pub('enzyme:update', name, level);
+    var low = (level.val <= level.low), high = (level.val >= level.high);
+    if (low || high) {
+      level.enzyme.diseases.forEach((disease) => {
+        var infect:bool = false;
+        if ((low && disease.condition === DiseaseCondition.LOW) ||
+            (high && disease.condition === DiseaseCondition.HIGH)) {
+          infect = Random.chance(this.disMgr.chance);
+        }
+        if (infect) {
+          this.disMgr.acquire(disease);
+        }
+      });
+    }
+  }
+}
+
+class EnzymeStats implements HasElem {
+  $elem: JQuery;
+  public levels:JQuery[] = [];
+  constructor(elem:any, cfg:any) {
+    this.$elem = $(elem);
+    this.$elem.empty();
+    for (var name in ENZYMES) {
+      var enzyme:Enzyme = ENZYMES[name];
+      var $level = $('<li class="level"></li>');
+      var $name = $('<span class="name"></span>').text(enzyme.name).appendTo($level);
+      $name.attr('title', enzyme.title);
+      var $val = $('<span class="val"></span>').appendTo($level);
+      $level.attr('id', name).appendTo(this.$elem);
+      this.levels[name] = $val;
+
+    }
+    Msg.sub('enzyme:update', proxy(this, 'update'));
+  }
+  update(name:string, level:EnzymeLevel) {
+    var $level = this.levels[name];
+    var percent = 100.0*(level.val/level.max);
+    $level.css('width', percent + '%');
+    $level.toggleClass('low', level.val <= level.low);
+    $level.toggleClass('high', level.val >= level.high);
+  }
+}
+
 
 interface InGrid {
   row: number;
@@ -150,9 +253,6 @@ class KeyManager {
   }
 }
 
-var keyMgr:KeyManager = new KeyManager();
-
-
 /** The base properties that all cells share, binary from 1 to 32. */
 class DNA {
   public code: string = '';
@@ -162,8 +262,8 @@ class DNA {
   public props:string[] = ['reproduce', 'apoptosis', 'grow', 'enzyme1',
                            'enzyme2', 'misc1'];
 
-  constructor(public reproduce:number=1, public apoptosis:number=1,
-              public grow:number=1, public enzyme1:number=1,
+  constructor(public key:number[], public reproduce:number=1,
+              public apoptosis:number=1, public grow:number=1, public enzyme1:number=1,
               public enzyme2:number=1, public misc1:number=1) {
     this.buildCode();
   }
@@ -175,14 +275,14 @@ class DNA {
       val |= this[prop] << (i<<2);
     });
     this.code = TEA.int2bin(val);
-    this.encoded = TEA.encrypt64b(keyMgr.key, this.code);
+    this.encoded = TEA.encrypt64b(this.key, this.code);
   }
 
   copy(mutate?:bool=true):DNA {
-    var doMutate:bool = mutate || Random.int(1, this.manager.mutateResist) === 1;
+    var doMutate:bool = mutate || Random.chance(this.manager.mutateResist);
     if (!doMutate) return this;
 
-    var copy:DNA = new DNA();
+    var copy:DNA = new DNA(this.key);
     copy.ancestor = this;
     copy.manager = this.manager;
     this.props.forEach((prop:string) => {
@@ -231,9 +331,9 @@ class DNAManager {
   public mutateCount: number = 1;
   public mutateAmount: number = 2;
 
-  constructor(root?:DNA) {
+  constructor(cfg:any, root?:DNA) {
     // I think the DNA needs to start the same every game for stability.
-    this.root = root || new DNA(10, 10, 10, 10, 10, 10);
+    this.root = root || new DNA(cfg.keyMgr.key, 10, 10, 10, 15, 15, 15);
     this.root.manager = this;
     this.$info = $('.mutate-info');
     this.$resist = this.$info.find('.resist');
@@ -268,13 +368,15 @@ class Cell implements HasElem, InGrid {
   deathT: TWEEN.Tween;
   props: CellProperties;
   respond: Function;  // Set every broadcast
+  enzMgr: EnzymeManager;
 
-  constructor(public dna:DNA, public kind:string) {
+  constructor(public cfg:any, public dna:DNA, public kind:string) {
     this.$elem = $('<div class="cell"></div>').addClass(kind);
     this.$body = $('<div class="body" width="100%" height="100%"></div>')
                  .appendTo(this.$elem);
     this.$img = $('<img alt=""/>').attr('src', CELL_IMG).appendTo(this.$body);
     this.row = this.col = 0;
+    this.enzMgr = cfg.enzMgr;
     this.broadcastT = renewableTimeout(proxy(this, 'broadcast'), CELL_BROADCAST);
     if (kind === 'empty') {
       this.props = new CellProperties();
@@ -341,6 +443,7 @@ class Cell implements HasElem, InGrid {
   }
   /** You can fast-forward with a 0-1 scale based on the total life. */
   birth(fastForward:number=0) {
+    this.enzMgr.add(this);
     var lifeSec = this.props.apoptosis, skipSec = 0;
     if (fastForward) {
       skipSec = lifeSec*fastForward;
@@ -410,6 +513,7 @@ class Cell implements HasElem, InGrid {
   }
   die(reason:string, broadcast:bool=true) {
     Msg.pub('cell:death', self, reason);
+    this.enzMgr.subtract(this);
     this.kind = 'empty';
     this.$elem.pause().removeClass(CELL_KINDS).addClass('empty');
     this.$img.pause();
@@ -449,7 +553,7 @@ class CellGrid implements HasElem {
     $(window).on('resize hashchange', proxy(this, 'resize'));
     $(document).ready(proxy(this, 'resize'));
     var seedKind = CELL_REGIONS[region.name][index];
-    this.fill(cfg.rootDna, seedKind);
+    this.fill(cfg.rootDna, seedKind, cfg);
   }
   resize() {
     setTimeout(() => {
@@ -463,12 +567,12 @@ class CellGrid implements HasElem {
     this.cells.forEach((cell) => { cell.die('clear'); });
     this.$table.empty();
   }
-  fill(dna:DNA, kind:string='empty') {
+  fill(dna:DNA, kind:string='empty', cfg:any={}) {
     this.clear();
     var w = 100.0/this.cols, h = 100.0/this.rows;
     for (var row = 0; row < this.rows; ++row) {
       for (var col = 0; col < this.cols; ++col) {
-        var cell = new Cell(dna, kind);
+        var cell = new Cell(cfg, dna, kind);
         cell.$elem.css({left: col*w + '%', top: row*h + '%'}).appendTo(this.$table);
         cell.addToGrid(this, row, col);
         this.cells.push(cell);
@@ -528,11 +632,22 @@ class Game implements HasElem {
   visible: bool;
   body: Body;
   dnaMgr: DNAManager;
+  keyMgr: KeyManager;
+  disMgr: DiseaseManager;
+  enzMgr: EnzymeManager;
+  enzStats: EnzymeStats;
+
   constructor(elem:any, cfg:any) {
     this.$elem = $(elem);
     this.visible = true;
-    this.dnaMgr = new DNAManager();
+    this.keyMgr = cfg.keyMgr = new KeyManager();
+    this.dnaMgr = cfg.dnaMgr = new DNAManager(cfg);
     cfg.rootDna = this.dnaMgr.root;
+
+    this.disMgr = cfg.disMgr = new DiseaseManager(DISEASE_CHANCE);
+    this.enzMgr = cfg.enzMgr = new EnzymeManager(cfg.disMgr, cfg.rows*cfg.cols);
+    this.enzStats = new EnzymeStats(this.$elem.find('.enzyme-info .levels'), cfg);
+
     this.body = new Body(this, this.$elem.find('.body'), cfg);
     Msg.pub('game:init', this);
   }
