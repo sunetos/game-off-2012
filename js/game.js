@@ -232,31 +232,157 @@ var CellProperties = (function () {
     };
     return CellProperties;
 })();
+var DiseaseCondition;
+(function (DiseaseCondition) {
+    DiseaseCondition._map = [];
+    DiseaseCondition._map[0] = "LOW";
+    DiseaseCondition.LOW = 0;
+    DiseaseCondition._map[1] = "HIGH";
+    DiseaseCondition.HIGH = 1;
+})(DiseaseCondition || (DiseaseCondition = {}));
+var Disease = (function () {
+    function Disease(name, condition) {
+        this.name = name;
+        this.condition = condition;
+    }
+    return Disease;
+})();
+var Enzyme = (function () {
+    function Enzyme(name, diseases) {
+        this.name = name;
+        this.diseases = diseases;
+    }
+    return Enzyme;
+})();
+var ENZYMES = {
+    'alp': new Enzyme('Alkaline phosphatase (ALP)', [
+        new Disease("Paget's disease", DiseaseCondition.HIGH), 
+        new Disease('Aplastic anemia', DiseaseCondition.LOW), 
+        
+    ]),
+    'alt': new Enzyme('Alanine transaminase (ALT)', [
+        new Disease('Cirrhosis', DiseaseCondition.HIGH), 
+        new Disease('Diabetes', DiseaseCondition.HIGH), 
+        
+    ]),
+    'ast': new Enzyme('Aspartate transaminase (AST)', [
+        new Disease('Hepatitis', DiseaseCondition.HIGH), 
+        
+    ]),
+    'bace1': new Enzyme('Beta-secretase 1 (BACE1)', [
+        new Disease('Alzheimers', DiseaseCondition.HIGH), 
+        
+    ]),
+    'ca': new Enzyme('Carbonic anhydrase (CA)', [
+        new Disease('Acidosis', DiseaseCondition.LOW), 
+        
+    ]),
+    'ck': new Enzyme('Creatine kinase (CK)', [
+        new Disease('Rhabdomyolysis', DiseaseCondition.HIGH), 
+        
+    ]),
+    'e-cadherin': new Enzyme('E-cadherin (CAM 120/80)', [
+        new Disease('Eczema', DiseaseCondition.HIGH), 
+        
+    ]),
+    'gastrin': new Enzyme('Gastrin', [
+        new Disease('Gastritis', DiseaseCondition.HIGH), 
+        new Disease('Zollinger-Ellison syndrome', DiseaseCondition.HIGH), 
+        
+    ]),
+    'hexosaminidase': new Enzyme('Hexosaminidase', [
+        new Disease('Sandhoff disease', DiseaseCondition.LOW), 
+        new Disease('Tay-Sachs disease', DiseaseCondition.LOW), 
+        
+    ]),
+    'glutathione': new Enzyme('Glutathione', [
+        new Disease('Cataracts', DiseaseCondition.LOW), 
+        
+    ]),
+    'lysozyme': new Enzyme('Lysozyme', [
+        new Disease('Conjunctivitis', DiseaseCondition.LOW), 
+        
+    ]),
+    'pepsin': new Enzyme('Pepsin', [
+        new Disease('Peptic ulcer', DiseaseCondition.HIGH), 
+        
+    ]),
+    'tnf-a': new Enzyme('Tumor necrosis factor-alpha (TNF-α)', [
+        new Disease('Psoriasis', DiseaseCondition.HIGH), 
+        new Disease('Systemic Sclerosis', DiseaseCondition.HIGH), 
+        
+    ]),
+    'trap': new Enzyme('Tartrate-resistant acid phosphatase (TRAP)', [
+        new Disease('Obesity', DiseaseCondition.HIGH), 
+        new Disease('Osteoporosis', DiseaseCondition.HIGH), 
+        
+    ]),
+    'troponin': new Enzyme('Troponin', [
+        new Disease('Heart attack', DiseaseCondition.HIGH), 
+        new Disease('Myocarditis', DiseaseCondition.HIGH), 
+        
+    ]),
+    'trypsin': new Enzyme('Trypsin', [
+        new Disease('Emphysema', DiseaseCondition.HIGH), 
+        
+    ])
+};
 var CELL_DEFS = {
     'bone': {
         props: new CellProperties(1, 3, 1, 1, 1),
-        enzymes: []
+        enzymes: [
+            'alp', 
+            'trap'
+        ]
     },
     'brain': {
-        props: new CellProperties(1, 12, 2, 1, 1)
+        props: new CellProperties(1, 12, 2, 1, 1),
+        enzymes: [
+            'hexosaminidase', 
+            'bace1'
+        ]
     },
     'eye': {
-        props: new CellProperties(1, 5, 1, 1, 1)
-    },
-    'lung': {
-        props: new CellProperties(1, 5, 1, 1, 1)
+        props: new CellProperties(1, 5, 1, 1, 1),
+        enzymes: [
+            'glutathione', 
+            'lysozyme'
+        ]
     },
     'heart': {
-        props: new CellProperties(1, 4, 1, 1, 1)
+        props: new CellProperties(1, 4, 1, 1, 1),
+        enzymes: [
+            'ck', 
+            'troponin'
+        ]
     },
     'liver': {
-        props: new CellProperties(1, 4, 1, 1, 1)
+        props: new CellProperties(1, 4, 1, 1, 1),
+        enzymes: [
+            'ast', 
+            'alt'
+        ]
     },
-    'muscle': {
-        props: new CellProperties(1, 6, 1, 1, 1)
+    'lung': {
+        props: new CellProperties(1, 5, 1, 1, 1),
+        enzymes: [
+            'trypsin', 
+            'ca'
+        ]
+    },
+    'skin': {
+        props: new CellProperties(1, 6, 1, 1, 1),
+        enzymes: [
+            'tnf-a', 
+            'e-cadherin'
+        ]
     },
     'stomach': {
-        props: new CellProperties(1, 3, 1, 1, 1)
+        props: new CellProperties(1, 3, 1, 1, 1),
+        enzymes: [
+            'gastrin', 
+            'pepsin'
+        ]
     }
 };
 var CELL_KINDS = Object.keys(CELL_DEFS);
@@ -274,7 +400,7 @@ var CELL_REGIONS = {
         'stomach'
     ],
     'legs': [
-        'muscle', 
+        'skin', 
         'bone'
     ]
 };
