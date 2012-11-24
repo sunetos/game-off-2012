@@ -115,6 +115,11 @@ var Msg;
     Msg.pub = pub;
     ; ;
 })(Msg || (Msg = {}));
+String.prototype.toTitleCase = function () {
+    return this.replace(/\w\S*/g, function (txt) {
+        return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
+    });
+};
 var Random;
 (function (Random) {
     function int(min, max) {
@@ -415,18 +420,22 @@ var CELL_IMG = '/img/blank-cell.png';
 var FULL_W = 40, FULL_H = 40;
 var EMPTY_W = 4, EMPTY_H = 4, EMPTY_Z = 0.1;
 var GAME_MS = 1000 * 60 * 20;
-var MAX_MUTATE_MS = GAME_MS * 0.5;
-var DISEASE_CHANCE = 4;
+var MAX_MUTATE_MS = GAME_MS * 0.9;
+var DISEASE_CHANCE = 4, DISEASE_MAX = 3;
+; ;
 var DiseaseManager = (function () {
-    function DiseaseManager(chance) {
+    function DiseaseManager(chance, max) {
         this.chance = chance;
+        this.max = max;
         this.current = {
         };
+        this.list = [];
     }
     DiseaseManager.prototype.acquire = function (disease) {
         if(this.current[disease.name]) {
             return;
         }
+        this.list.push(disease);
         this.current[disease.name] = disease;
         Msg.pub('disease:acquire', disease);
     };
@@ -434,9 +443,17 @@ var DiseaseManager = (function () {
         if(!this.current[disease.name]) {
             return;
         }
+        this.list.splice(this.list.indexOf(disease), 1);
         delete this.current[disease.name];
         Msg.pub('disease:recover', disease);
     };
+    Object.defineProperty(DiseaseManager.prototype, "count", {
+        get: function () {
+            return this.list.length;
+        },
+        enumerable: true,
+        configurable: true
+    });
     return DiseaseManager;
 })();
 var EnzymeLevel = (function () {
@@ -448,23 +465,32 @@ var EnzymeLevel = (function () {
         this.min = min;
         this.max = max;
         this.val = 0;
-        this.val = start;
+        this.mods = [];
     }
     return EnzymeLevel;
 })();
 var EnzymeManager = (function () {
-    function EnzymeManager(disMgr, cellsPerKind) {
+    function EnzymeManager(disMgr, cellsPerKind, onLose) {
         this.disMgr = disMgr;
+        this.cellsPerKind = cellsPerKind;
+        this.onLose = onLose;
+        var _this = this;
         this.levels = {
         };
+        this.medicines = {
+        };
+        this.started = false;
         for(var name in ENZYMES) {
             var enzyme = ENZYMES[name];
-            var start = 0;
+            var start = cellsPerKind * 15;
             var low = cellsPerKind * 11;
             var high = cellsPerKind * 19;
             var min = cellsPerKind * 2, max = cellsPerKind * 31;
             this.levels[name] = new EnzymeLevel(enzyme, start, low, high, min, max);
         }
+        Msg.sub('game:init', function () {
+            _this.started = true;
+        });
     }
     EnzymeManager.prototype.add = function (cell) {
         var enzymes = CELL_DEFS[cell.kind].enzymes;
@@ -472,8 +498,8 @@ var EnzymeManager = (function () {
         var level2 = this.levels[enzymes[1]];
         level1.val += cell.props.enzyme1;
         level2.val += cell.props.enzyme2;
-        this.update(enzymes[0], level1);
-        this.update(enzymes[1], level2);
+        this.update(cell.kind, enzymes[0], level1);
+        this.update(cell.kind, enzymes[1], level2);
     };
     EnzymeManager.prototype.subtract = function (cell) {
         var enzymes = CELL_DEFS[cell.kind].enzymes;
@@ -481,12 +507,20 @@ var EnzymeManager = (function () {
         var level2 = this.levels[enzymes[1]];
         level1.val -= cell.props.enzyme1;
         level2.val -= cell.props.enzyme2;
-        this.update(enzymes[0], level1);
-        this.update(enzymes[1], level2);
+        this.update(cell.kind, enzymes[0], level1);
+        this.update(cell.kind, enzymes[1], level2);
     };
-    EnzymeManager.prototype.update = function (name, level) {
+    EnzymeManager.prototype.update = function (organ, name, level) {
         var _this = this;
-        Msg.pub('enzyme:update', name, level);
+        Msg.pub('enzyme:update', organ, name, level);
+        if(!this.started) {
+            return;
+        }
+        if(level.val <= level.min) {
+            this.onLose([
+                'total ' + organ + ' failure'
+            ]);
+        }
         var low = (level.val <= level.low), high = (level.val >= level.high);
         if(low || high) {
             level.enzyme.diseases.forEach(function (disease) {
@@ -496,9 +530,40 @@ var EnzymeManager = (function () {
                 }
                 if(infect) {
                     _this.disMgr.acquire(disease);
+                    if(_this.disMgr.count >= _this.disMgr.max) {
+                        var reasons = _this.disMgr.list.map(function (d) {
+                            return d.name;
+                        });
+                        return _this.onLose(reasons);
+                    }
                 }
             });
         }
+    };
+    EnzymeManager.prototype.fix = function (organ, fixType) {
+        var _this = this;
+        CELL_DEFS[organ].enzymes.forEach(function (name) {
+            var level = _this.levels[name];
+            var diff = level.start - level.val;
+            if(fixType === 'nutrition') {
+                level.val += diff * 0.2;
+            } else {
+                if(fixType === 'medicine') {
+                    var val = _this.medicines[name] = (_this.medicines[name] || 0) + 1;
+                    level.val += diff * (1 - val * 0.2);
+                } else {
+                    if(fixType === 'surgery') {
+                        var fail = Random.chance(8);
+                        if(fail) {
+                            level.val = 0;
+                        } else {
+                            level.val += diff * 0.85;
+                        }
+                    }
+                }
+            }
+            _this.update(organ, name, level);
+        });
     };
     return EnzymeManager;
 })();
@@ -509,7 +574,8 @@ var EnzymeStats = (function () {
         this.$elem = $(elem);
         var $levels = this.$elem.find('.levels').empty();
         var $organs = this.$elem.find('.organs').empty();
-        for(var organ in CELL_DEFS) {
+        this.enzMgr = cfg.enzMgr;
+        Object.keys(CELL_DEFS).forEach(function (organ) {
             var organName = organ[0].toUpperCase() + organ.slice(1);
             var $organ = $('<li class="organ"></li>').text(organName);
             var $fix = $('<button class="fix">Fix</button>').appendTo($organ);
@@ -517,7 +583,7 @@ var EnzymeStats = (function () {
                 var $pop = $('#templates .organ-fix').clone();
                 $pop.find('.fix-type button').on('click', function (e) {
                     var fixType = $(e.target).closest('.fix-type').data('fix-type');
-                    _this.fix(organ, fixType);
+                    _this.enzMgr.fix(organ, fixType);
                     $pop.trigger('close');
                 });
                 $pop.appendTo($('body:first')).lightbox();
@@ -532,12 +598,10 @@ var EnzymeStats = (function () {
                 $level.attr('id', name).appendTo($levels);
                 _this.levels[name] = $val;
             });
-        }
+        });
         Msg.sub('enzyme:update', proxy(this, 'update'));
     }
-    EnzymeStats.prototype.fix = function (organ, fixType) {
-    };
-    EnzymeStats.prototype.update = function (name, level) {
+    EnzymeStats.prototype.update = function (organ, name, level) {
         var $level = this.levels[name];
         var percent = 100 * (level.val / level.max);
         $level.css('width', percent + '%');
@@ -639,7 +703,7 @@ var DNADisplay = (function () {
 var DNAManager = (function () {
     function DNAManager(cfg, root) {
         this.root = null;
-        this.mutateResist = 20;
+        this.mutateResist = 30;
         this.mutateCount = 1;
         this.mutateAmount = 1;
         this.root = root || new DNA(cfg.keyMgr.key, 10, 10, 10, 15, 15, 15);
@@ -665,7 +729,7 @@ var DNAManager = (function () {
     return DNAManager;
 })();
 var ProgressStats = (function () {
-    function ProgressStats($elem) {
+    function ProgressStats($elem, onWin) {
         var tween = new TWEEN.Tween({
             days: 0
         }).to({
@@ -682,13 +746,7 @@ var ProgressStats = (function () {
             var years = (days / 365) | 0;
             $days.text('' + (days % 365));
             $years.text('' + years);
-        }).onComplete(function () {
-            TWEEN.getAll().forEach(function (tween) {
-                tween.stop();
-            });
-            var $pop = $('#templates .game-win').clone().lightbox();
-            $pop.appendTo($('body:first'));
-        }).start();
+        }).onComplete(onWin).start();
     }
     return ProgressStats;
 })();
@@ -698,6 +756,7 @@ var Cell = (function () {
         this.dna = dna;
         this.kind = kind;
         var _this = this;
+        this.stopped = false;
         this.$elem = $('<div class="cell"></div>').addClass(kind);
         this.$body = $('<div class="body" width="100%" height="100%"></div>').appendTo(this.$elem);
         this.$img = $('<img alt=""/>').attr('src', CELL_IMG).appendTo(this.$body);
@@ -716,6 +775,9 @@ var Cell = (function () {
             _this.$info.remove();
             _this.$info = null;
         }, 250);
+        Msg.sub('game:over', function () {
+            _this.stopped = true;
+        });
     }
     Cell.prototype.setPropElems = function () {
         var _this = this;
@@ -869,6 +931,9 @@ var Cell = (function () {
     };
     Cell.prototype.die = function (reason, broadcast) {
         if (typeof broadcast === "undefined") { broadcast = true; }
+        if(this.stopped) {
+            return;
+        }
         Msg.pub('cell:death', self, reason);
         this.enzMgr.subtract(this);
         this.kind = 'empty';
@@ -880,6 +945,9 @@ var Cell = (function () {
         }
     };
     Cell.prototype.become = function (kind, dna) {
+        if(this.stopped) {
+            return;
+        }
         this.kind = kind;
         if(dna) {
             this.dna = dna.copy();
@@ -1010,12 +1078,35 @@ var Game = (function () {
         this.keyMgr = cfg.keyMgr = new KeyManager();
         this.dnaMgr = cfg.dnaMgr = new DNAManager(cfg);
         cfg.rootDna = this.dnaMgr.root;
-        this.disMgr = cfg.disMgr = new DiseaseManager(DISEASE_CHANCE);
-        this.enzMgr = cfg.enzMgr = new EnzymeManager(cfg.disMgr, cfg.rows * cfg.cols);
+        var cells = cfg.rows * cfg.cols;
+        var onWin = proxy(this, 'onWin'), onLose = proxy(this, 'onLose');
+        this.disMgr = cfg.disMgr = new DiseaseManager(DISEASE_CHANCE, DISEASE_MAX);
+        this.enzMgr = cfg.enzMgr = new EnzymeManager(cfg.disMgr, cells, onLose);
         this.enzStats = new EnzymeStats(this.$elem.find('.enzyme-info'), cfg);
-        this.prgStats = new ProgressStats(this.$elem.find('.life-info'));
+        this.prgStats = new ProgressStats(this.$elem.find('.life-info'), onWin);
         this.body = new Body(this, this.$elem.find('.body'), cfg);
         Msg.pub('game:init', this);
     }
+    Game.prototype.stopAll = function () {
+        Msg.pub('game:over', this);
+        $('.cell, .cell img').stop();
+        TWEEN.getAll().forEach(function (tween) {
+            try  {
+                tween.stop();
+            } catch (e) {
+            }
+        });
+    };
+    Game.prototype.onWin = function () {
+        var $pop = $('#templates .game-win').clone().lightbox();
+        $pop.appendTo($('body:first'));
+        this.stopAll();
+    };
+    Game.prototype.onLose = function (reasons) {
+        var $pop = $('#templates .game-lose').clone().lightbox();
+        $pop.find('.reasons').text(reasons.join(', '));
+        $pop.appendTo($('body:first'));
+        this.stopAll();
+    };
     return Game;
 })();

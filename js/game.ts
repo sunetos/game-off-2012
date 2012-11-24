@@ -136,46 +136,61 @@ var FULL_W = 40, FULL_H = 40;
 var EMPTY_W = 4, EMPTY_H = 4, EMPTY_Z = 0.1;
 var GAME_MS = 1000*60*20;  // Game lasts twenty minutes
 //GAME_MS *= 0.001;  // For debugging
-var MAX_MUTATE_MS = GAME_MS*0.5;
-var DISEASE_CHANCE = 4;
+var MAX_MUTATE_MS = GAME_MS*0.9;
+//var MAX_MUTATE_MS = GAME_MS*0.01;
+var DISEASE_CHANCE = 4, DISEASE_MAX = 3;;
 
 class DiseaseManager {
   public current:any = {};
-  constructor(public chance:number) { }
+  public list:Disease[] = [];
+  constructor(public chance:number, public max:number) { }
 
   acquire(disease:Disease) {
     if (this.current[disease.name]) return;
 
+    this.list.push(disease);
     this.current[disease.name] = disease;
     Msg.pub('disease:acquire', disease);
   }
   recover(disease:Disease) {
     if (!this.current[disease.name]) return;
 
+    this.list.splice(this.list.indexOf(disease), 1);
     delete this.current[disease.name];
     Msg.pub('disease:recover', disease);
+  }
+  get count():number {
+    return this.list.length;
   }
 }
 
 class EnzymeLevel {
   public val:number = 0;
+  public mods:number[] = [];
   constructor(public enzyme:Enzyme, public start:number, public low:number,
               public high:number, public min:number, public max:number) {
-    this.val = start;
+    // Don't set the start value; new cells will grow to set the level.
   }
 }
 
 class EnzymeManager {
   public levels:any = {};
-  constructor(public disMgr:DiseaseManager, cellsPerKind:number) {
+  public medicines:any = {};
+  public started:bool = false;
+  constructor(public disMgr:DiseaseManager, public cellsPerKind:number,
+              public onLose:Function) {
     for (var name in ENZYMES) {
       var enzyme:Enzyme = ENZYMES[name];
-      var start = 0;
+      var start = cellsPerKind*15;
       var low = cellsPerKind*11;
       var high = cellsPerKind*19;
       var min = cellsPerKind*2, max = cellsPerKind*31;
       this.levels[name] = new EnzymeLevel(enzyme, start, low, high, min, max);
     }
+
+    Msg.sub('game:init', () => {
+      this.started = true;
+    });
   }
   add(cell:Cell) {
     var enzymes:string[] = CELL_DEFS[cell.kind].enzymes;
@@ -183,8 +198,8 @@ class EnzymeManager {
     var level2:EnzymeLevel = this.levels[enzymes[1]];
     level1.val += cell.props.enzyme1;
     level2.val += cell.props.enzyme2;
-    this.update(enzymes[0], level1);
-    this.update(enzymes[1], level2);
+    this.update(cell.kind, enzymes[0], level1);
+    this.update(cell.kind, enzymes[1], level2);
   }
   subtract(cell:Cell) {
     var enzymes:string[] = CELL_DEFS[cell.kind].enzymes;
@@ -192,11 +207,16 @@ class EnzymeManager {
     var level2:EnzymeLevel = this.levels[enzymes[1]];
     level1.val -= cell.props.enzyme1;
     level2.val -= cell.props.enzyme2;
-    this.update(enzymes[0], level1);
-    this.update(enzymes[1], level2);
+    this.update(cell.kind, enzymes[0], level1);
+    this.update(cell.kind, enzymes[1], level2);
   }
-  update(name:string, level:EnzymeLevel) {
-    Msg.pub('enzyme:update', name, level);
+  update(organ:string, name:string, level:EnzymeLevel) {
+    Msg.pub('enzyme:update', organ, name, level);
+    if (!this.started) return;
+
+    if (level.val <= level.min) {
+      this.onLose(['total ' + organ + ' failure']);
+    }
     var low = (level.val <= level.low), high = (level.val >= level.high);
     if (low || high) {
       level.enzyme.diseases.forEach((disease) => {
@@ -207,21 +227,48 @@ class EnzymeManager {
         }
         if (infect) {
           this.disMgr.acquire(disease);
+          if (this.disMgr.count >= this.disMgr.max) {
+            var reasons = this.disMgr.list.map((d) => d.name);
+            return this.onLose(reasons);
+          }
         }
       });
     }
+  }
+  fix(organ:string, fixType:string) {
+    CELL_DEFS[organ].enzymes.forEach((name) => {
+      var level:EnzymeLevel = this.levels[name];
+      var diff = level.start - level.val;
+      if (fixType === 'nutrition') {
+        level.val += diff*0.2;
+      } else if (fixType === 'medicine') {
+        // After five uses, medicine will actually start to do damage.
+        var val = this.medicines[name] = (this.medicines[name] || 0) + 1;
+        level.val += diff*(1.0 - val*0.2);
+      } else if (fixType === 'surgery') {
+        var fail = Random.chance(8);
+        if (fail) {
+          level.val = 0;
+        } else {
+          level.val += diff*0.85;
+        }
+      }
+      this.update(organ, name, level);
+    });
   }
 }
 
 class EnzymeStats implements HasElem {
   $elem: JQuery;
+  enzMgr: EnzymeManager;
   public levels:JQuery[] = [];
   constructor(elem:any, cfg:any) {
     this.$elem = $(elem);
     var $levels = this.$elem.find('.levels').empty();
     var $organs = this.$elem.find('.organs').empty();
+    this.enzMgr = cfg.enzMgr;
 
-    for (var organ in CELL_DEFS) {
+    Object.keys(CELL_DEFS).forEach((organ:string) => {  // Need a closure
       var organName = organ[0].toUpperCase() + organ.slice(1);
       var $organ = $('<li class="organ"></li>').text(organName);
       var $fix = $('<button class="fix">Fix</button>').appendTo($organ);
@@ -229,7 +276,7 @@ class EnzymeStats implements HasElem {
         var $pop = $('#templates .organ-fix').clone();
         $pop.find('.fix-type button').on('click', (e) => {
           var fixType = $(e.target).closest('.fix-type').data('fix-type');
-          this.fix(organ, fixType);
+          this.enzMgr.fix(organ, fixType);
           $pop.trigger('close');
         });
         $pop.appendTo($('body:first')).lightbox();
@@ -245,25 +292,16 @@ class EnzymeStats implements HasElem {
         $level.attr('id', name).appendTo($levels);
         this.levels[name] = $val;
       });
-    }
+    });
     Msg.sub('enzyme:update', proxy(this, 'update'));
   }
-  fix(organ:string, fixType:string) {
-  }
-  update(name:string, level:EnzymeLevel) {
+  update(organ:string, name:string, level:EnzymeLevel) {
     var $level = this.levels[name];
     var percent = 100.0*(level.val/level.max);
     $level.css('width', percent + '%');
     $level.toggleClass('low', level.val <= level.low);
     $level.toggleClass('high', level.val >= level.high);
   }
-}
-
-
-interface InGrid {
-  row: number;
-  col: number;
-  addToGrid(grid:any, row:number, col:number);
 }
 
 class KeyManager {
@@ -349,7 +387,7 @@ class DNAManager {
 
   public root: DNA = null;
   // Mutation resistance goes down over time, and count goes up.
-  public mutateResist: number = 20;
+  public mutateResist: number = 30;
   public mutateCount: number = 1;
   public mutateAmount: number = 1;
 
@@ -376,7 +414,7 @@ class DNAManager {
 
 class ProgressStats implements HasElem {
   $elem: JQuery;
-  constructor($elem:JQuery) {
+  constructor($elem:JQuery, onWin:Function) {
     var tween = new TWEEN.Tween({days: 0}).to({days: 75*365}, GAME_MS);
     var $days = $elem.find('.days:first'), $years = $elem.find('.years:first');
     var lastDays = 0;
@@ -388,19 +426,12 @@ class ProgressStats implements HasElem {
       var years = (days/365.0) | 0;
       $days.text('' + (days % 365));
       $years.text('' + years);
-    }).onComplete(() => {
-      TWEEN.getAll().forEach((tween:TWEEN.Tween) => {
-        tween.stop();
-      });
-
-      var $pop = $('#templates .game-win').clone().lightbox();
-      $pop.appendTo($('body:first'));
-    }).start();
+    }).onComplete(onWin).start();
   }
 }
 
 /** Where most of the magic happens. */
-class Cell implements HasElem, InGrid {
+class Cell implements HasElem {
   $elem: JQuery;
   $body: JQuery;
   $img: JQuery;
@@ -416,6 +447,7 @@ class Cell implements HasElem, InGrid {
   props: CellProperties;
   respond: Function;  // Set every broadcast
   enzMgr: EnzymeManager;
+  public stopped:bool = false;
 
   constructor(public cfg:any, public dna:DNA, public kind:string) {
     this.$elem = $('<div class="cell"></div>').addClass(kind);
@@ -437,6 +469,10 @@ class Cell implements HasElem, InGrid {
       this.$info.remove();
       this.$info = null;
     }, 250);
+
+    Msg.sub('game:over', () => {
+      this.stopped = true;
+    });
   }
   setPropElems() {
     Object.keys(this.props).forEach((prop) => {
@@ -558,6 +594,7 @@ class Cell implements HasElem, InGrid {
     other.respond(this);
   }
   die(reason:string, broadcast:bool=true) {
+    if (this.stopped) return;
     Msg.pub('cell:death', self, reason);
     this.enzMgr.subtract(this);
     this.kind = 'empty';
@@ -570,6 +607,7 @@ class Cell implements HasElem, InGrid {
     }
   }
   become(kind:string, dna?:DNA) {
+    if (this.stopped) return;
     this.kind = kind;
     if (dna) {
       this.dna = dna.copy();
@@ -695,12 +733,33 @@ class Game implements HasElem {
     this.dnaMgr = cfg.dnaMgr = new DNAManager(cfg);
     cfg.rootDna = this.dnaMgr.root;
 
-    this.disMgr = cfg.disMgr = new DiseaseManager(DISEASE_CHANCE);
-    this.enzMgr = cfg.enzMgr = new EnzymeManager(cfg.disMgr, cfg.rows*cfg.cols);
+    var cells = cfg.rows*cfg.cols;
+    var onWin = proxy(this, 'onWin'), onLose = proxy(this, 'onLose');
+
+    this.disMgr = cfg.disMgr = new DiseaseManager(DISEASE_CHANCE, DISEASE_MAX);
+    this.enzMgr = cfg.enzMgr = new EnzymeManager(cfg.disMgr, cells, onLose);
     this.enzStats = new EnzymeStats(this.$elem.find('.enzyme-info'), cfg);
-    this.prgStats = new ProgressStats(this.$elem.find('.life-info'));
+    this.prgStats = new ProgressStats(this.$elem.find('.life-info'), onWin);
 
     this.body = new Body(this, this.$elem.find('.body'), cfg);
     Msg.pub('game:init', this);
+  }
+  stopAll() {
+    Msg.pub('game:over', this);
+    $('.cell, .cell img').stop();
+    TWEEN.getAll().forEach((tween:TWEEN.Tween) => {
+      try { tween.stop(); } catch(e) { }
+    });
+  }
+  onWin() {
+    var $pop = $('#templates .game-win').clone().lightbox();
+    $pop.appendTo($('body:first'));
+    this.stopAll();
+  }
+  onLose(reasons:string[]) {
+    var $pop = $('#templates .game-lose').clone().lightbox();
+    $pop.find('.reasons').text(reasons.join(', '));
+    $pop.appendTo($('body:first'));
+    this.stopAll();
   }
 }

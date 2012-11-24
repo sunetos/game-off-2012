@@ -31,6 +31,15 @@ module Msg {
   };
 }
 
+interface String {
+  toTitleCase():string;
+}
+String.prototype.toTitleCase = function() {
+  return this.replace(/\w\S*/g, function(txt) {
+    return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
+  });
+};
+
 module Random {
   export function int(min:number, max:number):number {
     return ((Math.random()*(max - min + 1)) + min) | 0;
