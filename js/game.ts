@@ -227,8 +227,10 @@ class EnzymeStats implements HasElem {
       var $fix = $('<button class="fix">Fix</button>').appendTo($organ);
       $fix.data('organ', organ).on('click', (e) => {
         var $pop = $('#templates .organ-fix').clone();
-        $pop.find('.fix-type button').on('click', function(e) {
+        $pop.find('.fix-type button').on('click', (e) => {
           var fixType = $(e.target).closest('.fix-type').data('fix-type');
+          this.fix(organ, fixType);
+          $pop.trigger('close');
         });
         $pop.appendTo($('body:first')).lightbox();
       });
@@ -245,6 +247,8 @@ class EnzymeStats implements HasElem {
       });
     }
     Msg.sub('enzyme:update', proxy(this, 'update'));
+  }
+  fix(organ:string, fixType:string) {
   }
   update(name:string, level:EnzymeLevel) {
     var $level = this.levels[name];

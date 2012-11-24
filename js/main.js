@@ -23,7 +23,7 @@ jQuery.fn.extend({lightbox: function() {
     if (e.keyCode === 27) remove();
   }
   $(document).on('keyup', keyup);
-  $elem.on('click', '.close', remove);
+  $elem.on('click', '.close', remove).on('close', remove);
   return $elem;
 }});
 

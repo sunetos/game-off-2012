@@ -517,6 +517,8 @@ var EnzymeStats = (function () {
                 var $pop = $('#templates .organ-fix').clone();
                 $pop.find('.fix-type button').on('click', function (e) {
                     var fixType = $(e.target).closest('.fix-type').data('fix-type');
+                    _this.fix(organ, fixType);
+                    $pop.trigger('close');
                 });
                 $pop.appendTo($('body:first')).lightbox();
             });
@@ -533,6 +535,8 @@ var EnzymeStats = (function () {
         }
         Msg.sub('enzyme:update', proxy(this, 'update'));
     }
+    EnzymeStats.prototype.fix = function (organ, fixType) {
+    };
     EnzymeStats.prototype.update = function (name, level) {
         var $level = this.levels[name];
         var percent = 100 * (level.val / level.max);

@@ -1052,7 +1052,7 @@ to {
   padding: 1.0em;
 }
 .cell-info legend {
-  margin-left: 20px;
+  margin-left: 24px;
   font-size: 9px;
 }
 .cell-info legend.dna {
@@ -1065,6 +1065,9 @@ to {
 .cell-info ol {
   height: 54px;
   overflow-y: scroll;
+  padding: 0 0 0 24px;
+  margin: 0;
+  font-size: 10px;
 }
 .cell-info ol::-webkit-scrollbar {
   -webkit-appearance: none;
@@ -1081,11 +1084,6 @@ to {
 }
 .cell-info h5 {
   margin: 0;
-}
-.cell-info ol {
-  padding: 0 0 0 20px;
-  margin: 0;
-  font-size: 10px;
 }
 .dna {
   width: 270px;
