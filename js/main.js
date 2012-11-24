@@ -9,6 +9,20 @@ $(document).on('mouseenter mouseleave', '.cell, .cell-info', function(e) {
   $target.trigger((e.type === 'mouseenter') ? 'show-info' : 'hide-info');
 });
 
+jQuery.fn.extend({lightbox: function() {
+  var $elem = this.addClass('lightbox');
+  function remove() {
+    $(document).off('keyup', keyup);
+    $elem.remove();
+  }
+  function keyup(e) {
+    if (e.keyCode === 27) remove();
+  }
+  $(document).on('keyup', keyup);
+  $elem.on('click', '.close', remove);
+  return $elem;
+}});
+
 $(function() {
   //if ($.support.transition) $.fn.animate = $.fn.transition;
 

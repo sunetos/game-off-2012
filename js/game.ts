@@ -134,8 +134,8 @@ var CELL_BROADCAST = 500;  // ms
 var CELL_IMG = '/img/blank-cell.png';
 var FULL_W = 40, FULL_H = 40;
 var EMPTY_W = 4, EMPTY_H = 4, EMPTY_Z = 0.1;
-//var MAX_MUTATE_SEC = 60*10;
-var MAX_MUTATE_SEC = 1000*60*2;  // For debugging
+//var MAX_MUTATE_MS = 1000*60*10;
+var MAX_MUTATE_MS = 1000*60*2;  // For debugging
 var DISEASE_CHANCE = 4;
 
 class DiseaseManager {
@@ -217,16 +217,32 @@ class EnzymeStats implements HasElem {
   public levels:JQuery[] = [];
   constructor(elem:any, cfg:any) {
     this.$elem = $(elem);
-    this.$elem.empty();
-    for (var name in ENZYMES) {
-      var enzyme:Enzyme = ENZYMES[name];
-      var $level = $('<li class="level"></li>');
-      var $name = $('<span class="name"></span>').text(enzyme.name).appendTo($level);
-      $name.attr('title', enzyme.title);
-      var $val = $('<span class="val"></span>').appendTo($level);
-      $level.attr('id', name).appendTo(this.$elem);
-      this.levels[name] = $val;
+    var $levels = this.$elem.find('.levels').empty();
+    var $organs = this.$elem.find('.organs').empty();
 
+    for (var organ in CELL_DEFS) {
+      var organName = organ[0].toUpperCase() + organ.slice(1);
+      var $organ = $('<li class="organ"></li>').text(organName);
+      var $fix = $('<button class="fix">Fix</button>').appendTo($organ);
+      $fix.data('organ', organ).on('click', (e) => {
+        var $pop = $('#templates .organ-fix').clone();
+        $pop.find('.fix-type button').on('click', function(e) {
+          var fixType = $(e.target).closest('.fix-type').data('fix-type');
+          console.log(fixType);
+        });
+        $pop.appendTo($('body:first')).lightbox();
+      });
+      $organs.append($organ);
+
+      CELL_DEFS[organ].enzymes.forEach((name) => {
+        var enzyme:Enzyme = ENZYMES[name];
+        var $level = $('<li class="level"></li>');
+        var $name = $('<span class="name"></span>').text(enzyme.name).appendTo($level);
+        $name.attr('title', enzyme.title);
+        var $val = $('<span class="val"></span>').appendTo($level);
+        $level.attr('id', name).appendTo($levels);
+        this.levels[name] = $val;
+      });
     }
     Msg.sub('enzyme:update', proxy(this, 'update'));
   }
@@ -341,7 +357,7 @@ class DNAManager {
     this.$amount = this.$info.find('.amount');
 
     var tween = new TWEEN.Tween(this);
-    tween.to({mutateResist: 5, mutateCount: 5, mutateAmount: 3}, MAX_MUTATE_SEC);
+    tween.to({mutateResist: 5, mutateCount: 5, mutateAmount: 3}, MAX_MUTATE_MS);
     tween.onUpdate(this.updateInfo);
     tween.start();
   }
@@ -626,6 +642,10 @@ class Body implements HasElem {
   }
 }
 
+interface JQuery {
+  lightbox(): JQuery;
+}
+
 /* The main controller for the game. */
 class Game implements HasElem {
   $elem: JQuery;
@@ -646,7 +666,7 @@ class Game implements HasElem {
 
     this.disMgr = cfg.disMgr = new DiseaseManager(DISEASE_CHANCE);
     this.enzMgr = cfg.enzMgr = new EnzymeManager(cfg.disMgr, cfg.rows*cfg.cols);
-    this.enzStats = new EnzymeStats(this.$elem.find('.enzyme-info .levels'), cfg);
+    this.enzStats = new EnzymeStats(this.$elem.find('.enzyme-info'), cfg);
 
     this.body = new Body(this, this.$elem.find('.body'), cfg);
     Msg.pub('game:init', this);

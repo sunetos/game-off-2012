@@ -737,7 +737,8 @@ a:focus,
 a:hover {
   outline: 0;
 }
-#preload {
+#preload,
+#templates {
   display: none;
 }
 #logo {
@@ -749,6 +750,82 @@ a:hover {
   font-size: 32px;
   color: #edc;
   text-shadow: 0px 1px 0px #999, 1px 2px 0px #777, 2px 3px 0px #666, 3px 4px 0px #333, 4px 5px 8px #885500;
+}
+.lightbox {
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+  -webkit-border-radius: 5px;
+  -moz-border-radius: 5px;
+  border-radius: 5px;
+  -moz-background-clip: padding;
+  -webkit-background-clip: padding-box;
+  background-clip: padding-box;
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  width: 550px;
+  height: 350px;
+  margin-left: -275px;
+  margin-top: -175px;
+  background-color: #ddd;
+  z-index: 5000;
+  padding: 20px;
+}
+.lightbox:before,
+.lightbox:after {
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+  z-index: -1;
+  content: '';
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+}
+.lightbox:before {
+  position: fixed;
+  background-color: rgba(255, 255, 255, 0.65);
+}
+.lightbox:after {
+  position: absolute;
+  border: 1px solid #333;
+  -webkit-border-radius: 5px;
+  -moz-border-radius: 5px;
+  border-radius: 5px;
+  -moz-background-clip: padding;
+  -webkit-background-clip: padding-box;
+  background-clip: padding-box;
+}
+.lightbox .controls {
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+  right: 20px;
+  width: auto;
+}
+.lightbox .controls .close {
+  overflow: hidden;
+}
+.lightbox .controls .close:before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: #FF0000;
+  -khtml-opacity: 0.2;
+  -webkit-opacity: 0.2;
+  -moz-opacity: 0.2;
+  opacity: 0.2;
+  -webkit-border-radius: 5px;
+  -moz-border-radius: 5px;
+  border-radius: 5px;
+  -moz-background-clip: padding;
+  -webkit-background-clip: padding-box;
+  background-clip: padding-box;
 }
 .styles section {
   *zoom: 1;
@@ -1014,37 +1091,92 @@ to {
 .dna .one {
   background-color: #222;
 }
-.enzyme-info {
+.organ-fix p {
+  margin: 0.5em 0;
+  text-align: center;
+}
+.organ-fix button {
+  height: 30px;
+  line-height: 30px;
   width: 100%;
 }
-.enzyme-info .levels {
+.organ-fix .fix-type {
+  margin-bottom: 1.5em;
+}
+.enzyme-info {
+  position: absolute;
+  width: 100%;
+}
+.enzyme-info .level-graph {
   width: 100%;
   position: relative;
   background-color: rgba(255, 255, 255, 0.5);
   font-size: 10px;
-  padding: 0;
 }
-.enzyme-info .levels .level {
+.enzyme-info .organs,
+.enzyme-info .levels {
+  position: absolute;
+  top: 0;
+  padding: 0;
+  list-style-type: none;
+}
+.enzyme-info .organs {
+  left: 0;
+  width: 100%;
+}
+.enzyme-info .organ {
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+  height: 33px;
+  line-height: 33px;
+  margin-bottom: 1px;
+  padding-left: 5px;
+  position: relative;
+  z-index: 3;
+}
+.enzyme-info .organ:nth-child(even) {
+  background-color: rgba(100, 100, 100, 0.3);
+}
+.enzyme-info .organ .fix {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  height: 20px;
+  line-height: 20px;
+  margin-top: -10px;
+  z-index: 3;
+  display: none;
+}
+.enzyme-info .organ:hover .fix {
+  display: block;
+}
+.enzyme-info .levels {
+  left: 30%;
+  width: 70%;
+  background-color: rgba(255, 255, 255, 0.5);
+  font-size: 10px;
+}
+.enzyme-info .level {
   -webkit-box-sizing: border-box;
   -moz-box-sizing: border-box;
   box-sizing: border-box;
   height: 16px;
   margin-bottom: 1px;
-  padding: 2px;
   position: relative;
 }
-.enzyme-info .levels .level .name,
-.enzyme-info .levels .level .val {
+.enzyme-info .level .name,
+.enzyme-info .level .val {
   display: block;
   position: absolute;
 }
-.enzyme-info .levels .level .name {
-  left: 2px;
+.enzyme-info .level .name {
+  left: 5px;
   top: 2px;
-  z-index: 1;
+  z-index: 5;
   cursor: default;
 }
-.enzyme-info .levels .level .val {
+.enzyme-info .level .val {
   -webkit-box-sizing: border-box;
   -moz-box-sizing: border-box;
   box-sizing: border-box;
@@ -1058,10 +1190,10 @@ to {
   -moz-opacity: 0.75;
   opacity: 0.75;
 }
-.enzyme-info .levels .level .val.low {
+.enzyme-info .level .val.low {
   background-color: #600;
 }
-.enzyme-info .levels .level .val.high {
+.enzyme-info .level .val.high {
   background-color: #600;
 }
 .map {

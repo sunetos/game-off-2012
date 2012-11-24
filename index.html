@@ -52,8 +52,10 @@
 
       <div class="enzyme-info">
         <h5>Enzyme Status</h5>
-        <ul class="levels">
-        </ul>
+        <div class="level-graph">
+          <ul class="organs"></ul>
+          <ul class="levels"></ul>
+        </div>
       </div>
     </aside>
 
@@ -114,6 +116,27 @@
   </div>
 
   <div class="config"></div>
+
+  <div id="templates">
+    <div class="organ-fix lightbox">
+      <div class="fix-type" data-fix-type="nutrition">
+        <p>Nutrition has a small effect with no side effects.</p>
+        <button class="fix-type-nutrition">Try to fix with nutrition</button>
+      </div>
+      <div class="fix-type" data-fix-type="medicine">
+        <p>Medicine has a larger effect but loses its effectiveness over time.</p>
+        <button class="fix-type-medicine">Try to fix with medicine</button>
+      </div>
+      <div class="fix-type" data-fix-type="surgery">
+        <p>Surgery has the largest effect but has a chance of catastrophe.</p>
+        <button class="fix-type-surgery">Try to fix with surgery</button>
+      </div>
+
+      <div class="controls">
+        <button class="close">Cancel</button>
+      </div>
+    </div>
+  </div>
 
   <div id="preload">
     <img src="/img/blank-cell.png"/>
