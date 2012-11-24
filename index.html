@@ -40,7 +40,18 @@
       </nav>
     </div>
 
+    <div class="help">
+      <p>Hover over cells to see their DNA mutation history.
+      Hover over the enzymes on the left to see how to adjust their levels.
+      Try to make it 75 years!</p>
+    </div>
+
     <aside>
+      <div class="life-info">
+        <h5>Progress</h5>
+        <p><span class="years">0</span> years, <span class="days">0</span> days.</p>
+      </div>
+
       <div class="mutate-info">
         <h5>Mutation Status</h5>
         <ul>
@@ -118,7 +129,7 @@
   <div class="config"></div>
 
   <div id="templates">
-    <div class="organ-fix lightbox">
+    <div class="organ-fix">
       <div class="fix-type" data-fix-type="nutrition">
         <p>Nutrition has a small effect with no side effects.</p>
         <button class="fix-type-nutrition">Try to fix with nutrition</button>
@@ -135,6 +146,18 @@
       <div class="controls">
         <button class="close">Cancel</button>
       </div>
+    </div>
+
+    <div class="game-over game-win">
+      <h4>Congratulations!</h4>
+      <p>Your cells have lived a full and healthy life.</p>
+      <button class="refresh">Click here to play again.</button>
+    </div>
+
+    <div class="game-over game-lose">
+      <h4>Please try again.</h4>
+      <p>The game has ended for the following reasons: <span class="reasons"></span>.</p>
+      <button class="refresh">Click here to try again.</button>
     </div>
   </div>
 

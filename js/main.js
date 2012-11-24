@@ -9,6 +9,10 @@ $(document).on('mouseenter mouseleave', '.cell, .cell-info', function(e) {
   $target.trigger((e.type === 'mouseenter') ? 'show-info' : 'hide-info');
 });
 
+$(document).on('click', '.refresh', function(e) {
+  document.location.reload();
+});
+
 jQuery.fn.extend({lightbox: function() {
   var $elem = this.addClass('lightbox');
   function remove() {
@@ -40,6 +44,7 @@ $(function() {
   visibly.visibilitychange(function(state) {
     console.log('The current visibility state is:' + state);
     game.visible = (state === 'visible');
+    $.fx.off = !game.visible;
   });
 
   function hashchange(e) {

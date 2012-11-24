@@ -272,15 +272,18 @@ a, a:focus, a:hover {
   .one { background-color: #222; }
 }
 
-.organ-fix {
-  p {
-    margin: 0.5em 0;
-    text-align: center;
-  }
+.lightbox {
   button {
     height: 30px;
     line-height: 30px;
     width: 100%;
+  }
+}
+
+.organ-fix {
+  p {
+    margin: 0.5em 0;
+    text-align: center;
   }
   .fix-type {
     margin-bottom: 1.5em;
@@ -359,7 +362,7 @@ a, a:focus, a:hover {
     }
     .val {
       .box-sizing(border-box);
-      z-index: 0;
+      z-index: 4;
       left: 0;
       top: 0;
       height: 16px;
@@ -428,14 +431,26 @@ a, a:focus, a:hover {
   }
 }
 
-.mutate-info {
-  padding: 0.5em;
+.life-info {
+  p {
+    font-size: 12px;
+    padding: 0 0 0 1.5em;
+  }
+}
 
+.mutate-info {
   ul {
     margin: 0.5em 0;
-    padding: 0 0 0 30px;
+    padding: 0 0 0 1.5em;
+    list-style-type: none;
   }
   li { font-size: 12px; }
+}
+
+.game-over {
+  h4 {
+    margin-top: 0;
+  }
 }
 
 .game {
@@ -448,9 +463,26 @@ a, a:focus, a:hover {
     height: 40%;
   }
 
+  .help {
+    .gpu;
+    position: absolute;
+    right: 5px;
+    top: 52%;
+    width: 10%;
+    height: 35%;
+
+    p {
+      margin: 0;
+      color: @text;
+      font-size: 12px;
+      padding-right: 5px;
+    }
+  }
+
   @aside-width: 15%;
   aside {
     .box-sizing(border-box);
+    padding-top: 0.5em;
     position: absolute;
     top: 0;
     left: 0;
@@ -464,6 +496,7 @@ a, a:focus, a:hover {
     h5 {
       margin: 0;
       font-size: 16px;
+      padding: 0 0.5em;
     }
     p {
       color: #ddd;

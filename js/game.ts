@@ -134,8 +134,9 @@ var CELL_BROADCAST = 500;  // ms
 var CELL_IMG = '/img/blank-cell.png';
 var FULL_W = 40, FULL_H = 40;
 var EMPTY_W = 4, EMPTY_H = 4, EMPTY_Z = 0.1;
-//var MAX_MUTATE_MS = 1000*60*10;
-var MAX_MUTATE_MS = 1000*60*2;  // For debugging
+var GAME_MS = 1000*60*20;  // Game lasts twenty minutes
+//GAME_MS *= 0.001;  // For debugging
+var MAX_MUTATE_MS = GAME_MS*0.5;
 var DISEASE_CHANCE = 4;
 
 class DiseaseManager {
@@ -159,7 +160,7 @@ class DiseaseManager {
 class EnzymeLevel {
   public val:number = 0;
   constructor(public enzyme:Enzyme, public start:number, public low:number,
-              public high:number, public max:number) {
+              public high:number, public min:number, public max:number) {
     this.val = start;
   }
 }
@@ -172,8 +173,8 @@ class EnzymeManager {
       var start = 0;
       var low = cellsPerKind*11;
       var high = cellsPerKind*19;
-      var max = cellsPerKind*31;
-      this.levels[name] = new EnzymeLevel(enzyme, start, low, high, max);
+      var min = cellsPerKind*2, max = cellsPerKind*31;
+      this.levels[name] = new EnzymeLevel(enzyme, start, low, high, min, max);
     }
   }
   add(cell:Cell) {
@@ -228,7 +229,6 @@ class EnzymeStats implements HasElem {
         var $pop = $('#templates .organ-fix').clone();
         $pop.find('.fix-type button').on('click', function(e) {
           var fixType = $(e.target).closest('.fix-type').data('fix-type');
-          console.log(fixType);
         });
         $pop.appendTo($('body:first')).lightbox();
       });
@@ -365,6 +365,31 @@ class DNAManager {
     this.$resist.text(this.mutateResist.toFixed(2));
     this.$count.text(this.mutateCount.toFixed(2));
     this.$amount.text(this.mutateAmount.toFixed(2));
+  }
+}
+
+class ProgressStats implements HasElem {
+  $elem: JQuery;
+  constructor($elem:JQuery) {
+    var tween = new TWEEN.Tween({days: 0}).to({days: 75*365}, GAME_MS);
+    var $days = $elem.find('.days:first'), $years = $elem.find('.years:first');
+    var lastDays = 0;
+    tween.onUpdate(function() {
+      var days = this.days | 0;
+      if (days === lastDays) return;
+      lastDays = days;
+
+      var years = (days/365.0) | 0;
+      $days.text('' + (days % 365));
+      $years.text('' + years);
+    }).onComplete(() => {
+      TWEEN.getAll().forEach((tween:TWEEN.Tween) => {
+        tween.stop();
+      });
+
+      var $pop = $('#templates .game-win').clone().lightbox();
+      $pop.appendTo($('body:first'));
+    }).start();
   }
 }
 
@@ -656,6 +681,7 @@ class Game implements HasElem {
   disMgr: DiseaseManager;
   enzMgr: EnzymeManager;
   enzStats: EnzymeStats;
+  prgStats: ProgressStats;
 
   constructor(elem:any, cfg:any) {
     this.$elem = $(elem);
@@ -667,6 +693,7 @@ class Game implements HasElem {
     this.disMgr = cfg.disMgr = new DiseaseManager(DISEASE_CHANCE);
     this.enzMgr = cfg.enzMgr = new EnzymeManager(cfg.disMgr, cfg.rows*cfg.cols);
     this.enzStats = new EnzymeStats(this.$elem.find('.enzyme-info'), cfg);
+    this.prgStats = new ProgressStats(this.$elem.find('.life-info'));
 
     this.body = new Body(this, this.$elem.find('.body'), cfg);
     Msg.pub('game:init', this);

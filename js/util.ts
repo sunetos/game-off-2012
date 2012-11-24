@@ -60,7 +60,7 @@ function renewableTimeout(func, delay) {
       callT = null;
     }
   }
-  function callSet(overrideI) {
+  function callSet(overrideI?) {
     callClear();
     callT = setTimeout(function() {
       callT = null;
