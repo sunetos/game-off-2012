@@ -621,11 +621,14 @@ var DNA = (function () {
 var DNADisplay = (function () {
     function DNADisplay(dna) {
         this.dna = dna;
+        var _this = this;
         this.$elem = $('<div class="dna"></div>');
-        for(var i = 32; i < dna.encoded.length; ++i) {
-            var cls = (dna.encoded[i] | 0) ? 'one' : 'zero';
-            this.$elem.append($('<div></div>').addClass(cls));
-        }
+        dna.props.forEach(function (prop) {
+            var $prop = $('<div class="prop"></div>');
+            var wr = 100 * dna[prop] / 32;
+            var $val = $('<div class="val"></div>').width(wr + '%').appendTo($prop);
+            $prop.appendTo(_this.$elem);
+        });
     }
     return DNADisplay;
 })();
@@ -634,7 +637,7 @@ var DNAManager = (function () {
         this.root = null;
         this.mutateResist = 20;
         this.mutateCount = 1;
-        this.mutateAmount = 2;
+        this.mutateAmount = 1;
         this.root = root || new DNA(cfg.keyMgr.key, 10, 10, 10, 15, 15, 15);
         this.root.manager = this;
         this.$info = $('.mutate-info');
@@ -726,10 +729,9 @@ var Cell = (function () {
             return;
         }
         var left = this.col * this.grid.colW, top = this.row * this.grid.rowH;
-        this.$info = $('<div class="cell-info"></div>');
+        this.$info = $('#templates .cell-info').clone();
         this.$info.data('target', this.$elem);
-        this.$info.append('<h5>DNA History</h5>');
-        var $ol = $('<ol></ol>').appendTo(this.$info);
+        var $ol = this.$info.find('ol:first'), $leg = this.$info.find('legend:first');
         var dna = this.dna, $lis = [];
         while(dna) {
             var dnaDisplay = new DNADisplay(dna);
@@ -740,9 +742,9 @@ var Cell = (function () {
         $lis.forEach(function ($li) {
             return $ol.append($li);
         });
-        var info = this.$info.get(0);
         this.$elem.closest('.grid').append(this.$info);
-        info.scrollTop = info.scrollHeight;
+        var scroll = $ol.get(0);
+        scroll.scrollTop = scroll.scrollHeight;
     };
     Cell.prototype.hideInfo = function () {
         this.infoT.set();

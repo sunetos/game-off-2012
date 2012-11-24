@@ -330,10 +330,12 @@ class DNADisplay implements HasElem {
   $elem: JQuery;
   constructor(public dna:DNA) {
     this.$elem = $('<div class="dna"></div>');
-    for (var i = 32; i < dna.encoded.length; ++i) {
-      var cls = (dna.encoded[i] | 0) ? 'one' : 'zero';
-      this.$elem.append($('<div></div>').addClass(cls));
-    }
+    dna.props.forEach((prop:string) => {
+      var $prop = $('<div class="prop"></div>');
+      var wr = 100.0*dna[prop]/32;
+      var $val = $('<div class="val"></div>').width(wr + '%').appendTo($prop);
+      $prop.appendTo(this.$elem);
+    });
   }
 }
 
@@ -345,7 +347,7 @@ class DNAManager {
   // Mutation resistance goes down over time, and count goes up.
   public mutateResist: number = 20;
   public mutateCount: number = 1;
-  public mutateAmount: number = 2;
+  public mutateAmount: number = 1;
 
   constructor(cfg:any, root?:DNA) {
     // I think the DNA needs to start the same every game for stability.
@@ -446,10 +448,9 @@ class Cell implements HasElem, InGrid {
     if (this.$info) return;
 
     var left = this.col*this.grid.colW, top = this.row*this.grid.rowH;
-    this.$info = $('<div class="cell-info"></div>');
+    this.$info = $('#templates .cell-info').clone();
     this.$info.data('target', this.$elem);
-    this.$info.append('<h5>DNA History</h5>');
-    var $ol = $('<ol></ol>').appendTo(this.$info);
+    var $ol = this.$info.find('ol:first'), $leg = this.$info.find('legend:first');
 
     var dna:DNA = this.dna, $lis = [];
     while (dna) {
@@ -460,9 +461,9 @@ class Cell implements HasElem, InGrid {
     $lis.reverse();
     $lis.forEach(($li) => $ol.append($li));
 
-    var info = this.$info.get(0);
     this.$elem.closest('.grid').append(this.$info);
-    info.scrollTop = info.scrollHeight;
+    var scroll = $ol.get(0);
+    scroll.scrollTop = scroll.scrollHeight;
   }
   hideInfo() {
     this.infoT.set();

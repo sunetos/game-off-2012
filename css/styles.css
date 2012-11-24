@@ -1043,26 +1043,40 @@ to {
   box-sizing: border-box;
   position: absolute;
   left: 0;
-  top: 0;
+  top: -60px;
   width: 100%;
-  max-height: 100px;
-  overflow-y: scroll;
+  height: 124px;
   z-index: 5;
   background-color: #f2f2d9;
   border: 1px solid black;
   padding: 1.0em;
 }
-.cell-info::-webkit-scrollbar {
+.cell-info legend {
+  margin-left: 20px;
+  font-size: 9px;
+}
+.cell-info legend.dna {
+  height: 12px;
+  line-height: 14px;
+}
+.cell-info legend.dna .prop:nth-child(even) {
+  background-color: #bbb;
+}
+.cell-info ol {
+  height: 54px;
+  overflow-y: scroll;
+}
+.cell-info ol::-webkit-scrollbar {
   -webkit-appearance: none;
   width: 11px;
   height: 11px;
 }
-.cell-info::-webkit-scrollbar-thumb {
+.cell-info ol::-webkit-scrollbar-thumb {
   border-radius: 8px;
   border: 2px solid #f2f2d9;
   background-color: rgba(0, 0, 0, 0.5);
 }
-.cell-info::-webkit-scrollbar-track {
+.cell-info ol::-webkit-scrollbar-track {
   background-color: rgba(0, 0, 0, 0.15);
 }
 .cell-info h5 {
@@ -1074,14 +1088,14 @@ to {
   font-size: 10px;
 }
 .dna {
-  width: 256px;
+  width: 270px;
   height: 3px;
   border: 1px solid #999;
   display: inline-block;
 }
 .dna .zero,
 .dna .one {
-  width: 8px;
+  width: 9px;
   height: 3px;
   float: left;
 }
@@ -1089,6 +1103,21 @@ to {
   background-color: #ddd;
 }
 .dna .one {
+  background-color: #222;
+}
+.dna .prop {
+  float: left;
+  width: 45px;
+  height: 100%;
+  position: relative;
+  background-color: #ddd;
+  text-align: center;
+}
+.dna .prop .val {
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
   background-color: #222;
 }
 .lightbox button {
@@ -1451,13 +1480,11 @@ to {
   top: 60px;
   left: 50px;
   right: 20px;
-  overflow: hidden;
 }
 .game section .grids .grid {
   position: absolute;
   width: 47%;
   height: 100%;
-  overflow: hidden;
 }
 .game section .grids .grid:last-child {
   left: 53%;

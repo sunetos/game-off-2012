@@ -223,27 +223,43 @@ a, a:focus, a:hover {
   .box-sizing(border-box);
   position: absolute;
   left: 0;
-  top: 0;
+  top: -60px;
   width: 100%;
-  max-height: 100px;
-  overflow-y: scroll;
+  height: 124px;
   z-index: 5;
   background-color: hsl(60, 0.5, 0.9);
   border: 1px solid black;
   padding: 1.0em;
 
-  &::-webkit-scrollbar {
-    -webkit-appearance: none;
-    width: 11px;
-    height: 11px;
+  legend {
+    margin-left: 20px;
+    font-size: 9px;
+    &.dna {
+      height: 12px;
+      line-height: 14px;
+      .prop:nth-child(even) {
+        background-color: #bbb;
+      }
+    }
   }
-  &::-webkit-scrollbar-thumb {
-    border-radius: 8px;
-    border: 2px solid hsl(60, 0.5, 0.9); // should match background, can't be transparent
-    background-color: rgba(0, 0, 0, .5);
-  }
-  &::-webkit-scrollbar-track {
-    background-color: rgba(0, 0, 0, .15);
+
+  ol {
+    height: 54px;
+    overflow-y: scroll;
+
+    &::-webkit-scrollbar {
+      -webkit-appearance: none;
+      width: 11px;
+      height: 11px;
+    }
+    &::-webkit-scrollbar-thumb {
+      border-radius: 8px;
+      border: 2px solid hsl(60, 0.5, 0.9); // should match background, can't be transparent
+      background-color: rgba(0, 0, 0, .5);
+    }
+    &::-webkit-scrollbar-track {
+      background-color: rgba(0, 0, 0, .15);
+    }
   }
 
   h5 {
@@ -256,9 +272,9 @@ a, a:focus, a:hover {
   }
 }
 .dna {
-  @bit-w: 8px;
+  @bit-w: 9px;
   @bit-h: 3px;
-  width: @bit-w*32;
+  width: @bit-w*30;
   height: @bit-h;
   border: 1px solid #999;
   display: inline-block;
@@ -270,6 +286,22 @@ a, a:focus, a:hover {
   }
   .zero { background-color: #ddd; }
   .one { background-color: #222; }
+
+  .prop {
+    float: left;
+    width: @bit-w*5;
+    height: 100%;
+    position: relative;
+    background-color: #ddd;
+    text-align: center;
+    .val {
+      position: absolute;
+      left: 0;
+      top: 0;
+      height: 100%;
+      background-color: #222;
+    }
+  }
 }
 
 .lightbox {
@@ -534,13 +566,11 @@ a, a:focus, a:hover {
       top: 60px;
       left: 50px;
       right: 20px;
-      overflow: hidden;
 
       .grid {
         position: absolute;
         width: 47%;
         height: 100%;
-        overflow: hidden;
         &:last-child {
           left: 53%;
         }
