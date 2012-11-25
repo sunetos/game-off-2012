@@ -49,6 +49,10 @@ $(function() {
 
   function hashchange(e) {
     var param = $.bbq.getState();
+    if (!param.region) {
+      $.bbq.pushState({region: 'head'});
+      return;
+    }
     game.body.visibleRegion = param.region;
     $(['.body section', '.map nav li']).each(function(i, s) {
       $(s).removeClass('active').filter('.' + param.region).addClass('active');
