@@ -16,6 +16,8 @@ various diseases. Try to make it 75 years before getting too many diseases!
   use javascript tweening engine.
 * [es5-shim](https://github.com/kriskowal/es5-shim) Support ES5 in older
   browsers, mostly.
+* [DefinitelyTyped](https://github.com/borisyankov/DefinitelyTyped) TypeScript
+  type definitions repository for popular JavaScript libraries.
 * [Modernizr](http://modernizr.com/) JavaScript library that detects HTML5 and
   CSS3 features.
 * [TEA cipher](http://www.movable-type.co.uk/scripts/tea-block.html) TEA Simple
@@ -25,3 +27,13 @@ various diseases. Try to make it 75 years before getting too many diseases!
     to node.js.
   * [watchr](https://github.com/bevry/watchr) Better file system watching for
     node.js.
+
+## Background
+
+I was diagnosed with leukemia (T-AML) at the end of October, so I decided to
+spend my hospital free time in November making a game about cell health and
+cloning for the 2012 github game-off.
+
+It turned out to be a great project to fill my time, and I really enjoyed using
+some new tools like Typescript. I would definitely use Typescript again for
+another browser game.
