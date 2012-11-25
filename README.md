@@ -17,7 +17,8 @@ various diseases. Try to make it 75 years before getting too many diseases!
 * [es5-shim](https://github.com/kriskowal/es5-shim) Support ES5 in older
   browsers, mostly.
 * [DefinitelyTyped](https://github.com/borisyankov/DefinitelyTyped) TypeScript
-  type definitions repository for popular JavaScript libraries.
+  type definitions repository for popular JavaScript libraries (to which I added
+  a couple definitions for this project).
 * [Modernizr](http://modernizr.com/) JavaScript library that detects HTML5 and
   CSS3 features.
 * [TEA cipher](http://www.movable-type.co.uk/scripts/tea-block.html) TEA Simple
