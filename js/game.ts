@@ -336,8 +336,8 @@ class DNA {
     this.encoded = TEA.encrypt64b(this.key, this.code);
   }
 
-  copy(mutate?:bool=true):DNA {
-    var doMutate:bool = mutate || Random.chance(this.manager.mutateResist);
+  copy():DNA {
+    var doMutate:bool = Random.chance(this.manager.mutateResist);
     if (!doMutate) return this;
 
     var copy:DNA = new DNA(this.key);
@@ -387,7 +387,7 @@ class DNAManager {
 
   public root: DNA = null;
   // Mutation resistance goes down over time, and count goes up.
-  public mutateResist: number = 30;
+  public mutateResist: number = 10;
   public mutateCount: number = 1;
   public mutateAmount: number = 1;
 
@@ -418,7 +418,13 @@ class ProgressStats implements HasElem {
     var tween = new TWEEN.Tween({days: 0}).to({days: 75*365}, GAME_MS);
     var $days = $elem.find('.days:first'), $years = $elem.find('.years:first');
     var lastDays = 0;
+    var stopped = false;
+    Msg.sub('game:over', () => {
+      stopped = true;
+    });
+
     tween.onUpdate(function() {
+      if (stopped) return;
       var days = this.days | 0;
       if (days === lastDays) return;
       lastDays = days;

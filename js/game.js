@@ -654,10 +654,9 @@ var DNA = (function () {
         this.code = TEA.int2bin(val);
         this.encoded = TEA.encrypt64b(this.key, this.code);
     };
-    DNA.prototype.copy = function (mutate) {
-        if (typeof mutate === "undefined") { mutate = true; }
+    DNA.prototype.copy = function () {
         var _this = this;
-        var doMutate = mutate || Random.chance(this.manager.mutateResist);
+        var doMutate = Random.chance(this.manager.mutateResist);
         if(!doMutate) {
             return this;
         }
@@ -703,7 +702,7 @@ var DNADisplay = (function () {
 var DNAManager = (function () {
     function DNAManager(cfg, root) {
         this.root = null;
-        this.mutateResist = 30;
+        this.mutateResist = 10;
         this.mutateCount = 1;
         this.mutateAmount = 1;
         this.root = root || new DNA(cfg.keyMgr.key, 10, 10, 10, 15, 15, 15);
@@ -737,7 +736,14 @@ var ProgressStats = (function () {
         }, GAME_MS);
         var $days = $elem.find('.days:first'), $years = $elem.find('.years:first');
         var lastDays = 0;
+        var stopped = false;
+        Msg.sub('game:over', function () {
+            stopped = true;
+        });
         tween.onUpdate(function () {
+            if(stopped) {
+                return;
+            }
             var days = this.days | 0;
             if(days === lastDays) {
                 return;
