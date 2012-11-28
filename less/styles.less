@@ -358,14 +358,16 @@ a, a:focus, a:hover {
       position: absolute;
       right: 0;
       top: 50%;
-      height: 20px;
-      line-height: 20px;
-      margin-top: -10px;
+      height: 100%;
+      line-height: 1.5em;
+      margin-top: -16px;
       z-index: 3;
 
-      display: none;
+      .rounded(5px);
+      overflow: hidden;
+      .opacity(0.5);
     }
-    &:hover .fix { display: block; }
+    &:hover .fix { .opacity(.9); }
   }
   .levels {
     left: 30%;

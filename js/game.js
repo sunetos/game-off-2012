@@ -578,7 +578,7 @@ var EnzymeStats = (function () {
         Object.keys(CELL_DEFS).forEach(function (organ) {
             var organName = organ[0].toUpperCase() + organ.slice(1);
             var $organ = $('<li class="organ"></li>').text(organName);
-            var $fix = $('<button class="fix">Fix</button>').appendTo($organ);
+            var $fix = $('<button class="fix">Fix<br>Me</button>').appendTo($organ);
             $fix.data('organ', organ).on('click', function (e) {
                 var $pop = $('#templates .organ-fix').clone();
                 $pop.find('.fix-type button').on('click', function (e) {

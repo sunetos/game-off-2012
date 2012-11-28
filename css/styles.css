@@ -1169,14 +1169,27 @@ to {
   position: absolute;
   right: 0;
   top: 50%;
-  height: 20px;
-  line-height: 20px;
-  margin-top: -10px;
+  height: 100%;
+  line-height: 1.5em;
+  margin-top: -16px;
   z-index: 3;
-  display: none;
+  -webkit-border-radius: 5px;
+  -moz-border-radius: 5px;
+  border-radius: 5px;
+  -moz-background-clip: padding;
+  -webkit-background-clip: padding-box;
+  background-clip: padding-box;
+  overflow: hidden;
+  -khtml-opacity: 0.5;
+  -webkit-opacity: 0.5;
+  -moz-opacity: 0.5;
+  opacity: 0.5;
 }
 .enzyme-info .organ:hover .fix {
-  display: block;
+  -khtml-opacity: 0.9;
+  -webkit-opacity: 0.9;
+  -moz-opacity: 0.9;
+  opacity: 0.9;
 }
 .enzyme-info .levels {
   left: 30%;
